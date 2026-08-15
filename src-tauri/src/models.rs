@@ -61,6 +61,13 @@ pub struct LogoAssetDefinition {
   pub default_enabled: bool,
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GenerateLogoPackResult {
+  pub pack_directory: String,
+  pub batch: BatchResult,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "mode", rename_all = "camelCase")]
 pub enum ResizeOptions {

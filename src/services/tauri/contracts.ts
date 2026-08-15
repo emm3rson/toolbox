@@ -24,13 +24,16 @@ export type ProgressHandler = (progress: ProcessingProgress) => void
 
 export interface ConvertImagesRequest { files: string[]; outputDirectory: string; outputFormat: ImageFormat; quality?: number; resize: ResizeOptions }
 export interface CompressImagesRequest { files: string[]; outputDirectory: string; quality: number; resize: ResizeOptions }
-export interface GenerateLogoPackRequest { sourcePath: string; outputDirectory: string; assets: string[] }
+export interface GenerateLogoPackRequest { sourcePath: string; outputDirectory: string; assetIds: string[] }
+export interface LogoAssetDefinition { id: string; filename: string; width: number; height: number; format: 'png' | 'ico'; defaultEnabled: boolean }
+export interface GenerateLogoPackResult { packDirectory: string; batch: BatchResult }
 
 export interface TauriAdapter {
   inspectFiles(paths: string[]): Promise<InputFile[]>
   convertImages(request: ConvertImagesRequest, onProgress?: ProgressHandler): Promise<BatchResult>
   compressImages(request: CompressImagesRequest, onProgress?: ProgressHandler): Promise<BatchResult>
-  generateLogoPack(request: GenerateLogoPackRequest, onProgress?: ProgressHandler): Promise<BatchResult>
+  generateLogoPack(request: GenerateLogoPackRequest, onProgress?: ProgressHandler): Promise<GenerateLogoPackResult>
+  getLogoPresets(): Promise<LogoAssetDefinition[]>
   pickFiles(mode: 'batch' | 'logo'): Promise<string[]>
   pickFolder(): Promise<string | null>
   openFolder(path: string): Promise<void>

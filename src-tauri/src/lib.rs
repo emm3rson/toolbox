@@ -12,7 +12,10 @@ pub fn run() {
     .plugin(tauri_plugin_store::Builder::new().build())
     .invoke_handler(tauri::generate_handler![
       commands::inspect_files,
-      commands::convert_images
+      commands::convert_images,
+      commands::compress_images,
+      commands::generate_logo_pack,
+      commands::get_logo_presets
     ])
     .run(tauri::generate_context!())
     .expect("error while running Toolbox");

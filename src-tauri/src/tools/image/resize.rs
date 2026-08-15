@@ -41,6 +41,16 @@ pub fn target_size(
   }
 }
 
+/// Resizes an image to exact target dimensions with Lanczos3 resampling.
+pub fn resize(img: &DynamicImage, (width, height): (u32, u32)) -> DynamicImage {
+  DynamicImage::ImageRgba8(image::imageops::resize(
+    img,
+    width,
+    height,
+    image::imageops::FilterType::Lanczos3,
+  ))
+}
+
 /// Resizes the image to the request's target dimensions, if any.
 pub fn apply(
   img: &DynamicImage,
@@ -49,12 +59,7 @@ pub fn apply(
   match target_size(img.dimensions(), opts)? {
     None => Ok(img.clone()),
     Some((width, height)) if img.width() == width && img.height() == height => Ok(img.clone()),
-    Some((width, height)) => Ok(DynamicImage::ImageRgba8(image::imageops::resize(
-      img,
-      width,
-      height,
-      image::imageops::FilterType::Lanczos3,
-    ))),
+    Some((width, height)) => Ok(resize(img, (width, height))),
   }
 }
 

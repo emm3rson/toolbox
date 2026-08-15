@@ -1,25 +1,23 @@
 use std::path::Path;
 
 use crate::errors::ProcessingError;
-use crate::models::{FileResult, ImageFormat, ResizeOptions};
+use crate::models::{FileResult, ResizeOptions};
 use crate::services::export;
 
-use super::decode::decode;
-use super::encode::encode;
-use super::resize;
+use super::{decode, encode, resize};
 
-/// Converts one source image into `format`, applying the optional resize, and
-/// writes it to `output_dir`. Always returns a `FileResult` — failures are
-/// captured, never panicked.
-pub fn convert_file(
+/// Compresses one source image by re-encoding it in its own format at the
+/// requested quality, applying the optional resize, and writing
+/// `stem-compressed.ext` to `output_dir`. Always returns a `FileResult` —
+/// failures are captured, never panicked.
+pub fn compress_file(
   source: &Path,
   output_dir: &Path,
-  format: ImageFormat,
-  quality: Option<u8>,
+  quality: u8,
   resize_opts: &ResizeOptions,
 ) -> FileResult {
   let source_string = source.to_string_lossy().into_owned();
-  match convert_file_inner(source, output_dir, format, quality, resize_opts) {
+  match compress_file_inner(source, output_dir, quality, resize_opts) {
     Ok((output_path, original_size, output_size)) => FileResult {
       source_path: source_string,
       output_path: Some(output_path),
@@ -39,11 +37,10 @@ pub fn convert_file(
   }
 }
 
-fn convert_file_inner(
+fn compress_file_inner(
   source: &Path,
   output_dir: &Path,
-  format: ImageFormat,
-  quality: Option<u8>,
+  quality: u8,
   resize_opts: &ResizeOptions,
 ) -> Result<(String, u64, u64), ProcessingError> {
   let original_size = std::fs::metadata(source).map_err(|error| {
@@ -60,11 +57,13 @@ fn convert_file_inner(
     }
   })?.len();
 
-  let img = decode(source)?;
+  let format = decode::detect_format(source)?;
+  let img = decode::decode(source)?;
   let img = resize::apply(&img, resize_opts)?;
-  let bytes = encode(&img, format, quality)?;
+  let bytes = encode::encode(&img, format, Some(quality))?;
 
-  let output_path = export::resolve_output_path(output_dir, source, format.extension(), None)?;
+  let output_path =
+    export::resolve_output_path(output_dir, source, format.extension(), Some("-compressed"))?;
   std::fs::write(&output_path, &bytes).map_err(|error| {
     if error.kind() == std::io::ErrorKind::PermissionDenied {
       ProcessingError::permission_denied(format!(
@@ -90,14 +89,14 @@ fn convert_file_inner(
 mod tests {
   use std::sync::atomic::{AtomicU32, Ordering};
 
-  use super::convert_file;
-  use crate::models::{ImageFormat, ResizeOptions};
+  use super::compress_file;
+  use crate::models::ResizeOptions;
 
   static COUNTER: AtomicU32 = AtomicU32::new(0);
 
   fn temp_dir() -> std::path::PathBuf {
     let dir = std::env::temp_dir().join(format!(
-      "toolbox-convert-test-{}-{}",
+      "toolbox-compress-test-{}-{}",
       std::process::id(),
       COUNTER.fetch_add(1, Ordering::Relaxed)
     ));
@@ -113,66 +112,40 @@ mod tests {
   }
 
   #[test]
-  fn converts_png_to_jpeg_with_expected_name_and_sizes() {
+  fn compresses_png_to_suffixed_name() {
     let dir = temp_dir();
     let source = dir.join("photo.png");
     write_fixture_png(&source, 32, 24);
 
-    let result = convert_file(&source, &dir, ImageFormat::Jpeg, Some(80), &ResizeOptions::Original);
+    let result = compress_file(&source, &dir, 80, &ResizeOptions::Original);
     assert!(result.success, "unexpected failure: {:?}", result.error);
-    assert_eq!(result.original_size, std::fs::metadata(&source).unwrap().len());
     let output_path = result.output_path.unwrap();
-    assert!(output_path.ends_with("photo.jpg"));
+    assert!(output_path.ends_with("photo-compressed.png"));
     assert!(std::path::Path::new(&output_path).exists());
+    assert_eq!(result.original_size, std::fs::metadata(&source).unwrap().len());
     assert!(result.output_size.unwrap() > 0);
     std::fs::remove_dir_all(&dir).unwrap();
   }
 
   #[test]
-  fn converts_to_webp_and_back() {
+  fn compresses_jpeg_to_jpg_with_quality_reduction() {
     let dir = temp_dir();
-    let source = dir.join("photo.png");
-    write_fixture_png(&source, 32, 24);
+    let source = dir.join("photo.jpeg");
+    let img = image::DynamicImage::ImageRgb8(image::RgbImage::from_fn(64, 64, |x, y| {
+      image::Rgb([(x * 3) as u8, (y * 5) as u8, 90])
+    }));
+    img.save(&source).unwrap();
 
-    let webp = convert_file(&source, &dir, ImageFormat::Webp, Some(75), &ResizeOptions::Original);
-    assert!(webp.success, "unexpected failure: {:?}", webp.error);
-    let webp_path = webp.output_path.unwrap();
+    let low = compress_file(&source, &dir, 20, &ResizeOptions::Original);
+    assert!(low.success, "unexpected failure: {:?}", low.error);
+    let low_path = low.output_path.unwrap();
+    assert!(low_path.ends_with("photo-compressed.jpg"));
+    assert!(low.output_size.unwrap() < low.original_size);
 
-    let roundtrip = convert_file(
-      std::path::Path::new(&webp_path),
-      &dir,
-      ImageFormat::Png,
-      None,
-      &ResizeOptions::Original,
-    );
-    assert!(roundtrip.success, "unexpected failure: {:?}", roundtrip.error);
-    let png_path = roundtrip.output_path.unwrap();
-    let decoded = image::ImageReader::open(&png_path).unwrap().decode().unwrap();
-    assert_eq!(decoded.width(), 32);
-    assert_eq!(decoded.height(), 24);
-    std::fs::remove_dir_all(&dir).unwrap();
-  }
-
-  #[test]
-  fn percentage_resize_is_applied_to_output() {
-    let dir = temp_dir();
-    let source = dir.join("photo.png");
-    write_fixture_png(&source, 40, 20);
-
-    let result = convert_file(
-      &source,
-      &dir,
-      ImageFormat::Webp,
-      Some(80),
-      &ResizeOptions::Percentage { percentage: 50 },
-    );
-    assert!(result.success, "unexpected failure: {:?}", result.error);
-    let decoded =
-      image_webp::WebPDecoder::new(std::io::BufReader::new(
-        std::fs::File::open(result.output_path.unwrap()).unwrap(),
-      ))
-      .unwrap();
-    assert_eq!(decoded.dimensions(), (20, 10));
+    let high = compress_file(&source, &dir, 95, &ResizeOptions::Original);
+    assert!(high.success, "unexpected failure: {:?}", high.error);
+    assert_ne!(high.output_path.as_deref(), Some(low_path.as_str()));
+    assert!(low.output_size.unwrap() < high.output_size.unwrap());
     std::fs::remove_dir_all(&dir).unwrap();
   }
 }

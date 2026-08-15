@@ -2,11 +2,24 @@ import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { open } from '@tauri-apps/plugin-dialog'
 import { openPath } from '@tauri-apps/plugin-opener'
-import type { BatchResult, InputFile, ProcessingProgress, ProgressHandler, TauriAdapter } from './contracts'
-import { mockProcessing } from './mockAdapter'
+import type { BatchResult, GenerateLogoPackResult, InputFile, LogoAssetDefinition, ProcessingProgress, ProgressHandler, TauriAdapter } from './contracts'
 
 const IMAGE_FILTERS = [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
 const PROCESSING_EVENT = 'processing-progress'
+
+async function runWithProgress<T>(command: string, request: object, onProgress?: ProgressHandler): Promise<T> {
+  const jobId = crypto.randomUUID()
+  const unlisten = onProgress
+    ? await listen<ProcessingProgress>(PROCESSING_EVENT, (event) => {
+        if (event.payload.jobId === jobId) onProgress(event.payload)
+      })
+    : undefined
+  try {
+    return await invoke<T>(command, { request: { ...request, jobId } })
+  } finally {
+    unlisten?.()
+  }
+}
 
 export const realAdapter: TauriAdapter = {
   async pickFiles(mode) {
@@ -26,23 +39,16 @@ export const realAdapter: TauriAdapter = {
   async inspectFiles(paths) {
     return invoke<InputFile[]>('inspect_files', { paths })
   },
-  async convertImages(request, onProgress) {
-    const jobId = crypto.randomUUID()
-    const unlisten = onProgress
-      ? await listen<ProcessingProgress>(PROCESSING_EVENT, (event) => {
-          if (event.payload.jobId === jobId) onProgress(event.payload)
-        })
-      : undefined
-    try {
-      return await invoke<BatchResult>('convert_images', { request: { ...request, jobId } })
-    } finally {
-      unlisten?.()
-    }
+  convertImages(request, onProgress) {
+    return runWithProgress<BatchResult>('convert_images', request, onProgress)
   },
   compressImages(request, onProgress) {
-    return mockProcessing.compressImages(request, onProgress)
+    return runWithProgress<BatchResult>('compress_images', request, onProgress)
   },
   generateLogoPack(request, onProgress) {
-    return mockProcessing.generateLogoPack(request, onProgress)
+    return runWithProgress<GenerateLogoPackResult>('generate_logo_pack', request, onProgress)
+  },
+  async getLogoPresets() {
+    return invoke<LogoAssetDefinition[]>('get_logo_presets')
   },
 }
