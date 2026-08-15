@@ -101,3 +101,30 @@ impl From<ProcessingError> for ProcessingErrorDto {
     error.into_dto()
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::ProcessingError;
+
+  #[test]
+  fn all_variants_map_to_stable_codes() {
+    let cases = [
+      (ProcessingError::unsupported_format("x"), "UNSUPPORTED_FORMAT"),
+      (ProcessingError::invalid_image("x"), "INVALID_IMAGE"),
+      (ProcessingError::invalid_dimensions("x"), "INVALID_DIMENSIONS"),
+      (ProcessingError::file_not_found("x"), "FILE_NOT_FOUND"),
+      (ProcessingError::permission_denied("x"), "PERMISSION_DENIED"),
+      (ProcessingError::output_unavailable("x"), "OUTPUT_UNAVAILABLE"),
+      (ProcessingError::encode_failed("x"), "ENCODE_FAILED"),
+      (ProcessingError::decode_failed("x"), "DECODE_FAILED"),
+      (ProcessingError::write_failed("x"), "WRITE_FAILED"),
+      (ProcessingError::processing_failed("x"), "PROCESSING_FAILED"),
+    ];
+    for (error, expected_code) in cases {
+      let dto = error.into_dto();
+      assert_eq!(dto.code, expected_code);
+      assert!(!dto.message.is_empty());
+      assert_eq!(dto.detail, None);
+    }
+  }
+}

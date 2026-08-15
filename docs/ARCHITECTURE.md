@@ -416,6 +416,8 @@ Shared internal primitives are appropriate here because these three tools operat
 
 Phase 2 selected the concrete crate set: `image` 0.25 (PNG/JPEG decode+encode, resize, ICO for the Logo Pack), `image-webp` 0.2 (pure-Rust WebP decode incl. lossy, lossless-only encode), and `libwebp-sys2` 0.2 (C FFI, vendored libwebp) used only for **lossy WebP encode** behind the isolated wrapper in `tools/image/webp.rs`. `image-webp` is required for WebP input because `image`'s built-in WebP decoder is lossless-only. `rayon` provides the bounded batch thread pool.
 
+Decode is guarded against extremely large sources (Phase 4): `tools/image/decode.rs` rejects PNG/JPEG beyond a side length of 16 384 px or 64 MP total before decoding (WebP is bounded via the decoder's buffer-size query), returning `INVALID_IMAGE`. Thresholds are named constants in `decode.rs` for easy tuning. `inspect` stays header-only and is not guarded.
+
 ---
 
 ## 18. Web Logo Pack Presets
@@ -485,7 +487,7 @@ tool.webLogoPack.selectedAssets
 
 Do not persist: processing history, source file lists, generated files, job records.
 
-Settings access should go through one frontend settings service. A migration/version field is reasonable if settings shape changes later, but do not build a complex migration framework in V1.
+Settings access should go through one frontend settings service. A migration/version field is reasonable if settings shape changes later, but do not build a complex migration framework in V1. The per-tool preference keys below (converter last format/quality, compressor quality, Logo Pack selected assets) are implemented; resize preferences are not persisted in V1.
 
 ---
 
@@ -588,6 +590,8 @@ The product should feel lightweight.
 - Return file paths and metadata rather than encoded image blobs unless preview requires them.
 - Measure before adding caches.
 
+Batch concurrency is bounded to `min(available_parallelism, 4)` worker threads, so peak decode memory is ~4 concurrent full images; extremely large sources are rejected at decode by the size guard (§17). These thresholds were chosen in Phase 4 and are centralized constants.
+
 Do not build a generalized caching system in V1.
 
 ---
@@ -638,55 +642,16 @@ V1 release testing is Windows-focused. Before a future macOS release, run the sa
 
 ## 32. Recommended Implementation Order
 
-### Phase 1 — Shell and Shared Foundation
+The canonical phase sequence is `docs/DEVELOPMENT_PHASES.md` (Frontend Brief → Phase 1 Tauri Shell → Phase 2 Image Core + Converter → Phase 3 Compressor + Logo Pack → Phase 4 Hardening + Release). The earlier planning sketch below is superseded by that file.
 
-- Initialize Tauri + React + TypeScript + Vite.
-- App shell and launcher.
-- Basic navigation.
-- Settings persistence.
-- Native file/folder dialogs.
-- Drag/drop normalization.
-- Shared file-list model.
-- Export destination handling.
+### Legacy Sketch (superseded)
 
-### Phase 2 — Image Processing Foundation
-
-- Native image inspection.
-- Image decode/encode.
-- Resize.
-- Safe output naming.
-- Batch processing.
-- Structured progress/errors.
-
-### Phase 3 — Image Converter
-
-- Conversion settings.
-- Batch conversion.
-- Optional resize.
-- Result summary.
-
-### Phase 4 — Image Compressor
-
-- Quality processing.
-- Optional resize.
-- Actual savings result.
-
-### Phase 5 — Web Logo Pack
-
-- Square-source validation.
-- Standard Web Pack preset.
-- Icon generation.
-- Folder output.
-- Integration snippet.
-
-### Phase 6 — Hardening
-
-- Failure cases.
-- Large batch behavior.
-- Permission/path issues.
-- Windows packaging.
-- Frontend cleanup.
-- Processor tests.
+- Phase 1 — Shell and Shared Foundation
+- Phase 2 — Image Processing Foundation
+- Phase 3 — Image Converter
+- Phase 4 — Image Compressor
+- Phase 5 — Web Logo Pack
+- Phase 6 — Hardening
 
 ---
 
@@ -711,6 +676,7 @@ V1 release testing is Windows-focused. Before a future macOS release, run the sa
 | Filename conflicts | Always auto-rename |
 | Export destination | Single app-wide remembered directory |
 | Logo Pack output | Folder (no ZIP) |
+| Windows packaging | NSIS installer (Tauri bundler, `currentUser` install) |
 | Windows | V1 supported platform |
 | macOS | Future, architecture kept portable |
 | External binaries | Allowed only behind isolated adapters when justified |

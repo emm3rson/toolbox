@@ -140,3 +140,73 @@ fn invalid_file(path: &str, size: u64, error: &str) -> InputFile {
   file.error = Some(error.into());
   file
 }
+
+#[cfg(test)]
+mod tests {
+  use std::sync::atomic::{AtomicU32, Ordering};
+
+  use super::inspect_paths;
+
+  static COUNTER: AtomicU32 = AtomicU32::new(0);
+
+  fn temp_dir() -> std::path::PathBuf {
+    let dir = std::env::temp_dir().join(format!(
+      "toolbox-inspect-test-{}-{}",
+      std::process::id(),
+      COUNTER.fetch_add(1, Ordering::Relaxed)
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+    dir
+  }
+
+  fn write_fixture_png(path: &std::path::Path, width: u32, height: u32) {
+    let img = image::DynamicImage::ImageRgba8(image::RgbaImage::from_fn(width, height, |x, y| {
+      image::Rgba([(x % 251) as u8, (y % 251) as u8, 120, 255])
+    }));
+    img.save(path).unwrap();
+  }
+
+  #[test]
+  fn valid_png_is_ready_with_dimensions() {
+    let dir = temp_dir();
+    let source = dir.join("ok.png");
+    write_fixture_png(&source, 40, 30);
+    let file = inspect_paths(vec![source.to_string_lossy().into_owned()]).remove(0);
+    assert_eq!(file.status, "ready");
+    assert_eq!(file.width, 40);
+    assert_eq!(file.height, 30);
+    std::fs::remove_dir_all(&dir).unwrap();
+  }
+
+  #[test]
+  fn corrupt_png_is_invalid_with_error() {
+    let dir = temp_dir();
+    let source = dir.join("broken.png");
+    std::fs::write(&source, b"not an image").unwrap();
+    let file = inspect_paths(vec![source.to_string_lossy().into_owned()]).remove(0);
+    assert_eq!(file.status, "invalid");
+    assert!(file.error.is_some());
+    std::fs::remove_dir_all(&dir).unwrap();
+  }
+
+  #[test]
+  fn zero_byte_file_is_invalid_with_error() {
+    let dir = temp_dir();
+    let source = dir.join("empty.png");
+    std::fs::write(&source, []).unwrap();
+    let file = inspect_paths(vec![source.to_string_lossy().into_owned()]).remove(0);
+    assert_eq!(file.status, "invalid");
+    assert!(file.error.is_some());
+    std::fs::remove_dir_all(&dir).unwrap();
+  }
+
+  #[test]
+  fn missing_path_is_invalid() {
+    let dir = temp_dir();
+    let source = dir.join("missing.png");
+    let file = inspect_paths(vec![source.to_string_lossy().into_owned()]).remove(0);
+    assert_eq!(file.status, "invalid");
+    assert_eq!(file.error.as_deref(), Some("File not found"));
+    std::fs::remove_dir_all(&dir).unwrap();
+  }
+}

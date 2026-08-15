@@ -1,7 +1,13 @@
 import { load } from '@tauri-apps/plugin-store'
+import type { ImageFormat } from '@/services/tauri/contracts'
 
 export type ThemeMode = 'system' | 'light' | 'dark'
-export interface PersistedSettings { theme: ThemeMode; exportPath: string }
+export interface ToolPrefs {
+  imageConverter?: { lastFormat?: ImageFormat; quality?: number }
+  imageCompressor?: { quality?: number }
+  webLogoPack?: { selectedAssets?: string[] }
+}
+export interface PersistedSettings { theme: ThemeMode; exportPath: string; tool?: ToolPrefs }
 
 const STORE_PATH = 'settings.json'
 const STORE_KEY = 'settings'

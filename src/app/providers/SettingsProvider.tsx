@@ -1,13 +1,15 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { desktop } from '@/services/tauri'
-import { loadSettings, saveSettings, type ThemeMode } from '@/services/settings'
+import { loadSettings, saveSettings, type ThemeMode, type ToolPrefs } from '@/services/settings'
 
 export type { ThemeMode }
-interface Settings { theme: ThemeMode; exportPath: string }
+type ToolSection = keyof ToolPrefs
+interface Settings { theme: ThemeMode; exportPath: string; tool: ToolPrefs }
 interface SettingsContextValue extends Settings {
   isDark: boolean; setTheme: (theme: ThemeMode) => void; chooseExportPath: () => Promise<string | null>
+  setToolPrefs: (section: ToolSection, values: Partial<NonNullable<ToolPrefs[ToolSection]>>) => void
 }
-const defaults: Settings = { theme: 'system', exportPath: '' }
+const defaults: Settings = { theme: 'system', exportPath: '', tool: {} }
 const CACHE_KEY = 'toolbox.settings'
 const SettingsContext = createContext<SettingsContextValue | null>(null)
 
@@ -29,7 +31,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }, [isDark])
   useEffect(() => {
     void loadSettings().then((stored) => {
-      if (stored.theme || stored.exportPath) setSettings((current) => ({ ...current, ...stored }))
+      if (stored.theme || stored.exportPath || stored.tool) {
+        setSettings((current) => ({ ...current, ...stored, tool: { ...current.tool, ...stored.tool } }))
+      }
     })
   }, [])
   useEffect(() => {
@@ -44,6 +48,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       if (exportPath) setSettings((current) => ({ ...current, exportPath }))
       return exportPath
     },
+    setToolPrefs: (section, values) => setSettings((current) => ({
+      ...current,
+      tool: { ...current.tool, [section]: { ...current.tool[section], ...values } },
+    })),
   }), [settings, isDark])
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
 }

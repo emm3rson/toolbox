@@ -103,7 +103,9 @@ mod tests {
   use std::path::{Path, PathBuf};
   use std::sync::atomic::{AtomicU32, Ordering};
 
-  use super::{create_output_dir, resolve_output_dir, resolve_output_path};
+  use crate::errors::ProcessingError;
+
+  use super::{create_output_dir, ensure_output_dir, resolve_output_dir, resolve_output_path};
 
   static COUNTER: AtomicU32 = AtomicU32::new(0);
 
@@ -115,6 +117,37 @@ mod tests {
     ));
     std::fs::create_dir_all(&dir).unwrap();
     dir
+  }
+
+  #[test]
+  fn ensure_output_dir_rejects_missing_path() {
+    let dir = temp_dir();
+    let missing = dir.join("does-not-exist");
+    let err = ensure_output_dir(&missing).unwrap_err();
+    assert!(matches!(err, ProcessingError::OutputUnavailable { .. }));
+    std::fs::remove_dir_all(&dir).unwrap();
+  }
+
+  #[test]
+  fn ensure_output_dir_rejects_regular_file() {
+    let dir = temp_dir();
+    let file = dir.join("photo.png");
+    std::fs::write(&file, b"x").unwrap();
+    let err = ensure_output_dir(&file).unwrap_err();
+    assert!(matches!(err, ProcessingError::OutputUnavailable { .. }));
+    std::fs::remove_dir_all(&dir).unwrap();
+  }
+
+  #[test]
+  fn same_dir_same_extension_never_overwrites_source() {
+    let dir = temp_dir();
+    let source = dir.join("photo.png");
+    std::fs::write(&source, b"original").unwrap();
+    let out = resolve_output_path(&dir, &source, "png", None).unwrap();
+    assert_ne!(out, source);
+    assert_eq!(out.file_name().unwrap().to_string_lossy(), "photo-2.png");
+    assert_eq!(std::fs::read_to_string(&source).unwrap(), "original");
+    std::fs::remove_dir_all(&dir).unwrap();
   }
 
   #[test]

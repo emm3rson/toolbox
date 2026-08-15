@@ -2,6 +2,15 @@
 
 Concise task-level record of completed project work and important handoff context.
 
+## Phase 4 — Hardening + Release — 2026-08-15
+
+- Changed: The app is now a release-ready Windows build. Decode rejects extremely large images (16 384 px/side or 64 MP) with a clean error instead of risking memory exhaustion, and corrupt/truncated/zero-byte files degrade gracefully through both inspection and processing. The batch runner is now runtime-agnostic and testable, with proven per-file failure isolation, per-file progress reporting, and a bounded 64-file smoke batch. Per-tool preferences (last convert format/quality, compressor quality, Logo Pack asset selection) are remembered across sessions via the existing settings store. A Vitest + React Testing Library suite covers the key interaction states (empty/invalid/progress/result/partial-failure) for the converter and Logo Pack. A branded icon (stacked utility-drawer mark) replaces the placeholder, and `npm run tauri build` produces a per-user NSIS installer with publisher and description metadata.
+- Decision: Batch concurrency stays `min(available_parallelism, 4)` and the image-size guard thresholds are centralized constants in `decode.rs` for easy tuning; NSIS (`currentUser`) is the V1 packaging target; ARCHITECTURE.md §32's superseded 6-phase sketch was replaced by a pointer to `DEVELOPMENT_PHASES.md`.
+- Verified: `cargo check`/`test` (41 tests + ignored large-batch run), `cargo check --release`, `npm run test` (8 frontend tests), `npm run build`, and `npm run tauri build` (NSIS installer) all passed; the release binary launches and stays alive. Installer installation and the visual smoke test remain with the owner.
+- Follow-up (2026-08-15): the release binary no longer spawns a console window — `main.rs` now sets `windows_subsystem = "windows"` for release builds (kept for `tauri dev`); installer rebuilt and verified as a GUI-subsystem exe.
+
+<!-- task: 2026-08-15-phase-4-hardening-release -->
+
 ## Phase 3 — Image Compressor + Web Logo Pack — 2026-08-15
 
 - Changed: Both remaining tools now run on real Rust processing and no mock adapters remain. Compress Images re-encodes each file in its own format at the chosen quality (PNG stays lossless, with a UI note), names outputs `photo-compressed.jpg`, and shows actual before/after sizes with a neutral "No size reduction" state instead of a negative percentage. Web Logo Pack generates the Standard Web Pack from a square ≥ 512 px source — multi-res `favicon.ico` (16/32/48) plus PNG icons — into a fresh `web-pack`/`web-pack-2` folder per run (prior packs are never overwritten), with the preset list owned centrally in Rust (`get_logo_presets`), asset checkboxes driven by it, specific validation messages (unsupported / non-square / too-small), per-asset failure reporting, and an inline error banner on command failure. The generated folder path is returned to the UI for "Saved to" and "Open folder".
