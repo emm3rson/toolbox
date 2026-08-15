@@ -2,6 +2,12 @@
 
 Concise task-level record of completed project work and important handoff context.
 
+## V1 Release — 2026-08-15
+
+- Changed: V1 shipped as a Windows app. All four development phases are complete — real Tauri shell, real Rust image processing for all three tools (no mocks), hardening, tests, and a per-user NSIS installer with branded icon. The release binary is a GUI-subsystem app (no console window).
+- Decision: Documentation reorganized for post-V1 work — `docs/PROJECT.md` (product/architecture/current state) and `docs/UI_RULES.md` (visual + interaction) are the active sources; V1 planning docs archived to `docs/archive/2026-08-baseline/`.
+- Verified: `cargo check`/`test` (41 + ignored large-batch), `cargo check --release`, `npm run test` (8), `npm run build`, and `npm run tauri build` pass; owner smoke test complete.
+
 ## Phase 4 — Hardening + Release — 2026-08-15
 
 - Changed: The app is now a release-ready Windows build. Decode rejects extremely large images (16 384 px/side or 64 MP) with a clean error instead of risking memory exhaustion, and corrupt/truncated/zero-byte files degrade gracefully through both inspection and processing. The batch runner is now runtime-agnostic and testable, with proven per-file failure isolation, per-file progress reporting, and a bounded 64-file smoke batch. Per-tool preferences (last convert format/quality, compressor quality, Logo Pack asset selection) are remembered across sessions via the existing settings store. A Vitest + React Testing Library suite covers the key interaction states (empty/invalid/progress/result/partial-failure) for the converter and Logo Pack. A branded icon (stacked utility-drawer mark) replaces the placeholder, and `npm run tauri build` produces a per-user NSIS installer with publisher and description metadata.
