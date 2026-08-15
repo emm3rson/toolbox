@@ -79,5 +79,10 @@ UI behavior: `UI_RULES.md`. History: `CHANGELOG.md` + `docs/tasks/`. Archived:
   intake/export/batch/errors.
 - Checks: `npm run build`, `npm run test`, `cargo check`/`test`/`check --release`
   (in `src-tauri`), `npm run tauri build`. Rust 1.97+ MSVC (`~/.cargo/bin`).
+- Versioning: SemVer — `0.x` while pre-1.0, `1.0.0` once stable for others;
+  MAJOR = breaking, MINOR = feature, PATCH = fix. Keep `version` in sync across
+  `tauri.conf.json` (drives app/installer), `Cargo.toml`, and `package.json`.
+  Bump per release (not per commit): bump → `npm run tauri build` → tag git
+  `vX.Y.Z` → changelog entry. No auto-updater yet, so this is manual.
 - Docs: update PROJECT/UI_RULES on durable changes; task-grouped CHANGELOG
   entries; never treat archive as current truth.

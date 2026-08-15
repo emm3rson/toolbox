@@ -2,6 +2,12 @@
 
 Concise task-level record of completed project work and important handoff context.
 
+## UI Polish and Codebase Optimization — 2026-08-16
+
+- Changed: Compact vertical tool cards in launcher locked to 3 columns across screen sizes, streamlined launcher subheader ("Local utilities for daily workflows. Nothing leaves your machine."), shortened compressor explanation note ("PNG is lossless. Quality slider applies to JPG and WebP only."), removed all em-dashes across the UI, upgraded post-processing completion screen with elevated summary styling and text-aligned action buttons with icons, and de-minified all single-line frontend components into clean, formatted TypeScript/React code.
+- Decision: Action buttons across completion screens now consistently pair contextual icons (`FolderIcon`, `RotateCcwIcon`, `CopyIcon`) and align with the message text column.
+- Verified: `npm run test` (8 frontend tests) and `npm run build` passed.
+
 ## V1 Release — 2026-08-15
 
 - Changed: V1 shipped as a Windows app. All four development phases are complete — real Tauri shell, real Rust image processing for all three tools (no mocks), hardening, tests, and a per-user NSIS installer with branded icon. The release binary is a GUI-subsystem app (no console window).
