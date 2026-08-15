@@ -8,7 +8,6 @@ import {
   FileListHeader,
   FileRow,
   ResizePanel,
-  SectionLabel,
   type RowStatus,
 } from '@/components/workspace'
 import {
@@ -274,9 +273,11 @@ export function BatchWorkspace({ mode }: { mode: 'convert' | 'compress' }) {
 
       <aside className="lg:sticky lg:top-20 space-y-5">
         {mode === 'convert' ? (
-          <>
+          <div className="rounded-[var(--radius-lg)] border border-border-strong bg-card p-4 space-y-4">
             <div>
-              <SectionLabel>Output format</SectionLabel>
+              <span className="block text-[13px] font-medium mb-2.5">
+                Output format
+              </span>
               <Segmented
                 value={format}
                 onChange={changeFormat}
@@ -286,7 +287,7 @@ export function BatchWorkspace({ mode }: { mode: 'convert' | 'compress' }) {
                   { value: 'webp', label: 'WebP' },
                 ]}
               />
-              <p className="mt-2 text-[12.5px] text-muted-foreground">
+              <p className="mt-2.5 text-[12.5px] text-muted-foreground leading-relaxed">
                 {format === 'png'
                   ? 'Lossless. Best for graphics and transparency.'
                   : format === 'jpeg'
@@ -294,12 +295,27 @@ export function BatchWorkspace({ mode }: { mode: 'convert' | 'compress' }) {
                     : 'Lossy with alpha. Modern balance of size and quality.'}
               </p>
             </div>
+
             {format !== 'png' && (
-              <Quality value={quality} onChange={changeQuality} />
+              <div className="pt-3.5 border-t border-border">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[13px] font-medium">Quality</span>
+                  <span className="font-mono text-[22px] font-medium">
+                    {quality}
+                  </span>
+                </div>
+                <div className="mt-3">
+                  <Slider value={quality} onChange={changeQuality} min={40} />
+                  <div className="mt-1 flex justify-between font-mono text-[10.5px] text-subtle-foreground">
+                    <span>max compression</span>
+                    <span>near-lossless</span>
+                  </div>
+                </div>
+              </div>
             )}
-          </>
+          </div>
         ) : (
-          <div className="rounded-[var(--radius-lg)] border border-border-strong bg-card px-4 py-4">
+          <div className="rounded-[var(--radius-lg)] border border-border-strong bg-card p-4">
             <div className="flex items-baseline justify-between">
               <span className="text-[13px] font-medium">Quality</span>
               <span className="font-mono text-[22px] font-medium">
@@ -338,33 +354,6 @@ export function BatchWorkspace({ mode }: { mode: 'convert' | 'compress' }) {
             : `${mode === 'convert' ? 'Export' : 'Compress'} ${files.length} ${files.length === 1 ? 'file' : 'files'}`}
         </Button>
       </aside>
-    </div>
-  )
-}
-
-function Quality({
-  value,
-  onChange,
-}: {
-  value: number
-  onChange: (value: number) => void
-}) {
-  return (
-    <div>
-      <SectionLabel
-        hint={
-          <span className="font-mono text-[12.5px] text-foreground">
-            {value}
-          </span>
-        }
-      >
-        Quality
-      </SectionLabel>
-      <Slider value={value} onChange={onChange} min={40} />
-      <div className="mt-1 flex justify-between font-mono text-[10.5px] text-subtle-foreground">
-        <span>smaller</span>
-        <span>sharper</span>
-      </div>
     </div>
   )
 }

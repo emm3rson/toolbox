@@ -204,7 +204,7 @@ export function FileListHeader({
           </button>
           <button
             onClick={onClear}
-            className="rounded-[var(--radius-sm)] px-2 py-1 text-[12px] font-medium text-danger hover:bg-danger-surface transition-colors"
+            className="rounded-[var(--radius-sm)] px-2 py-1 text-[12px] text-muted-foreground hover:text-danger hover:bg-danger-surface transition-colors"
           >
             Clear all
           </button>

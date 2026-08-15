@@ -9,7 +9,6 @@ import {
   ImageIcon,
   LogoPackIcon,
   RotateCcwIcon,
-  XIcon,
 } from '@/components/ui/icons'
 import { Completion } from '@/components/processing/Completion'
 import {
@@ -390,48 +389,52 @@ export function WebLogoPack() {
   const processing = phase === 'processing'
 
   return (
-    <div className="mx-auto grid max-w-[860px] gap-6 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
+    <div className="mx-auto grid max-w-[860px] gap-6 md:grid-cols-[240px_minmax(0,1fr)] md:items-start">
       <aside>
         <SectionLabel>Source</SectionLabel>
-        <div className="rounded-[var(--radius)] border border-border bg-card p-3">
-          <div className="aspect-square rounded-[var(--radius-sm)] bg-muted grid place-items-center">
-            <div className="text-center">
-              <div className="mx-auto mb-2 grid h-14 w-14 place-items-center rounded-[10px] bg-foreground text-background text-[22px]">
-                ◆
-              </div>
-              <span className="font-mono text-[10.5px] text-subtle-foreground">
-                preview
+        <div className="rounded-[var(--radius-lg)] border border-border-strong bg-card p-4">
+          <div className="flex items-start gap-3">
+            <div className="relative h-10 w-10 shrink-0 rounded-[8px] bg-muted grid place-items-center text-muted-foreground overflow-hidden">
+              <ImageIcon size={19} />
+              <span className="absolute bottom-0 inset-x-0 text-[7.5px] font-semibold uppercase text-center bg-foreground/72 text-background leading-[10px]">
+                {source.extension}
               </span>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13.5px] font-medium text-foreground">
+                {source.name}
+              </p>
+              <p className="font-mono text-[11.5px] text-muted-foreground mt-0.5 tabular-nums">
+                {source.width > 0 && source.height > 0
+                  ? `${source.width.toLocaleString()} × ${source.height.toLocaleString()}`
+                  : ''}
+                <span className="text-border-strong mx-1.5">·</span>
+                {formatBytes(source.size)}
+              </p>
             </div>
           </div>
 
-          <div className="mt-2.5">
-            <p className="truncate text-[12.5px] font-medium">{source.name}</p>
-            <p className="font-mono text-[11px] text-muted-foreground mt-0.5">
-              {source.width > 0 && source.height > 0
-                ? `${source.width} × ${source.height} · `
-                : ''}
-              {formatBytes(source.size)}
-            </p>
-          </div>
-
           {source.width >= 512 && source.width === source.height && (
-            <div className="mt-2.5 flex items-center gap-1.5 text-[11.5px] text-success">
+            <div className="mt-3 pt-3 border-t border-border flex items-center gap-1.5 text-[11.5px] text-success">
               <CheckIcon size={13} />
               Square · high resolution
             </div>
           )}
-        </div>
 
-        {!processing && (
-          <button
-            onClick={reset}
-            className="mt-2.5 inline-flex items-center gap-1.5 text-[12.5px] text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <XIcon size={13} />
-            Replace source
-          </button>
-        )}
+          {!processing && (
+            <div className="mt-3 pt-3 border-t border-border">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="w-full justify-center text-[12px]"
+                onClick={() => load()}
+              >
+                Replace image
+              </Button>
+            </div>
+          )}
+        </div>
       </aside>
 
       <section>
@@ -463,7 +466,7 @@ export function WebLogoPack() {
                   'rounded-[var(--radius-sm)] px-2 py-1 text-[12px] font-medium transition-colors',
                   selected.length < assets.length
                     ? 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    : 'text-danger hover:bg-danger-surface'
+                    : 'text-muted-foreground hover:text-danger hover:bg-danger-surface'
                 )}
               >
                 {selected.length < assets.length ? 'Select all' : 'Clear all'}

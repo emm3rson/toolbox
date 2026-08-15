@@ -2,10 +2,10 @@
 
 Concise task-level record of completed project work and important handoff context.
 
-## UI Polish and Codebase Optimization — 2026-08-16
+## Main Screens Consistency & UI Polish — 2026-08-16
 
-- Changed: Compact vertical tool cards in launcher locked to 3 columns across screen sizes, streamlined launcher subheader ("Local utilities for daily workflows. Nothing leaves your machine."), shortened compressor explanation note ("PNG is lossless. Quality slider applies to JPG and WebP only."), removed all em-dashes across the UI, upgraded post-processing completion screen with elevated summary styling and text-aligned action buttons with icons, and de-minified all single-line frontend components into clean, formatted TypeScript/React code.
-- Decision: Action buttons across completion screens now consistently pair contextual icons (`FolderIcon`, `RotateCcwIcon`, `CopyIcon`) and align with the message text column.
+- Changed: Unified Convert Images settings into a cohesive bordered card matching Compress Images, aligned quality slider presentation (22px mono score with max-compression/near-lossless labels), replaced Web Logo Pack's placeholder with a compact source card with integrated image replace button, locked launcher tool grid to 3 columns, removed em-dashes, and restrained "Clear all" button to muted text highlighting on hover.
+- Decision: Tool settings sidebars maintain unified card containers across all tools, and destructive actions stay visually muted until hovered to preserve primary CTA focus.
 - Verified: `npm run test` (8 frontend tests) and `npm run build` passed.
 
 ## V1 Release — 2026-08-15
