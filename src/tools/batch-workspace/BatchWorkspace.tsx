@@ -12,14 +12,21 @@ export function BatchWorkspace({ mode }: { mode: 'convert' | 'compress' }) {
   const [quality, setQuality] = useState(mode === 'convert' ? 82 : 78); const [resize, setResize] = useState<ResizeOptions>({mode:'original'})
   const [progress, setProgress] = useState(0); const [currentFile, setCurrentFile] = useState<string>(); const [result, setResult] = useState<BatchResult>()
 
-  const addFiles = async () => { const paths = await desktop.pickFiles('batch'); setFiles(await desktop.inspectFiles(paths)); setPhase('editing') }
+  const addFiles = async (paths?: string[]) => {
+    const selected = paths ?? (await desktop.pickFiles('batch'))
+    if (selected.length === 0) return
+    setFiles(await desktop.inspectFiles(selected))
+    setPhase('editing')
+  }
   const reset = () => { setFiles([]); setProgress(0); setResult(undefined); setPhase('empty') }
   const process = async () => {
+    const destination = exportPath || (await chooseExportPath())
+    if (!destination) return
     setPhase('processing'); setProgress(0); const paths = files.map((file) => file.path)
     const onProgress = ({completed,total,currentFile: active}: {completed:number;total:number;currentFile?:string}) => { setProgress(Math.round(completed / total * 100)); setCurrentFile(active) }
     const next = mode === 'convert'
-      ? await desktop.convertImages({files:paths,outputDirectory:exportPath,outputFormat:format,quality:format === 'png' ? undefined : quality,resize}, onProgress)
-      : await desktop.compressImages({files:paths,outputDirectory:exportPath,quality,resize}, onProgress)
+      ? await desktop.convertImages({files:paths,outputDirectory:destination,outputFormat:format,quality:format === 'png' ? undefined : quality,resize}, onProgress)
+      : await desktop.compressImages({files:paths,outputDirectory:destination,quality,resize}, onProgress)
     setResult(next); setPhase('done')
   }
   if (phase === 'empty') return <div className="mx-auto max-w-[560px] pt-6"><DropZone onAdd={addFiles} hint={mode === 'convert' ? 'Supports PNG, JPG and WebP. Drop a folder to add every image directly inside it.' : 'PNG, JPG and WebP keep their original format. Compression runs entirely on your machine.'}/></div>

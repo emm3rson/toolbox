@@ -32,6 +32,6 @@ export interface TauriAdapter {
   compressImages(request: CompressImagesRequest, onProgress?: ProgressHandler): Promise<BatchResult>
   generateLogoPack(request: GenerateLogoPackRequest, onProgress?: ProgressHandler): Promise<BatchResult>
   pickFiles(mode: 'batch' | 'logo'): Promise<string[]>
-  pickFolder(): Promise<string>
+  pickFolder(): Promise<string | null>
   openFolder(path: string): Promise<void>
 }
