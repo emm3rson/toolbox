@@ -1,4 +1,4 @@
-import type { BatchResult, CompressImagesRequest, ConvertImagesRequest, GenerateLogoPackRequest, ProgressHandler } from './contracts'
+import type { BatchResult, CompressImagesRequest, GenerateLogoPackRequest, ProgressHandler } from './contracts'
 
 const MOCK_FILES: { name: string; size: number }[] = [
   { name: 'hero-mountain-dawn.png', size: 8_912_400 },
@@ -30,9 +30,6 @@ async function runBatch(paths: string[], onProgress?: ProgressHandler, compressi
 }
 
 export const mockProcessing = {
-  convertImages(request: ConvertImagesRequest, onProgress?: ProgressHandler) {
-    return runBatch(request.files, onProgress, request.outputFormat === 'png' ? 0.82 : 0.52)
-  },
   compressImages(request: CompressImagesRequest, onProgress?: ProgressHandler) {
     return runBatch(request.files, onProgress, 0.18 + request.quality / 100 * 0.32)
   },

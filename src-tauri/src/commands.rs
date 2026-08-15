@@ -1,44 +1,35 @@
-use std::path::Path;
+use std::path::PathBuf;
 
-use crate::models::InputFile;
+use crate::errors::ProcessingErrorDto;
+use crate::models::{BatchResult, ConvertImagesRequest, InputFile};
+use crate::services;
+use crate::tools;
 
 #[tauri::command]
 pub fn inspect_files(paths: Vec<String>) -> Vec<InputFile> {
-  paths
-    .iter()
-    .map(|path| match std::fs::metadata(path) {
-      Ok(metadata) if metadata.is_file() => InputFile {
-        path: path.clone(),
-        name: Path::new(path)
-          .file_name()
-          .map(|name| name.to_string_lossy().into_owned())
-          .unwrap_or_else(|| path.clone()),
-        extension: Path::new(path)
-          .extension()
-          .map(|extension| extension.to_string_lossy().to_lowercase())
-          .unwrap_or_default(),
-        size: metadata.len(),
-        width: 0,
-        height: 0,
-        status: "ready".to_string(),
-        error: None,
-      },
-      _ => InputFile {
-        path: path.clone(),
-        name: Path::new(path)
-          .file_name()
-          .map(|name| name.to_string_lossy().into_owned())
-          .unwrap_or_else(|| path.clone()),
-        extension: Path::new(path)
-          .extension()
-          .map(|extension| extension.to_string_lossy().to_lowercase())
-          .unwrap_or_default(),
-        size: 0,
-        width: 0,
-        height: 0,
-        status: "invalid".to_string(),
-        error: Some("File not found".to_string()),
-      },
+  services::inspect::inspect_paths(paths)
+}
+
+#[tauri::command]
+pub async fn convert_images(
+  app: tauri::AppHandle,
+  request: ConvertImagesRequest,
+) -> Result<BatchResult, ProcessingErrorDto> {
+  let output_dir = PathBuf::from(&request.output_directory);
+  services::export::ensure_output_dir(&output_dir)?;
+
+  let job_id = request.job_id.clone();
+  let files: Vec<PathBuf> = request.files.iter().map(PathBuf::from).collect();
+  let format = request.output_format;
+  let quality = request.quality;
+  let resize = request.resize;
+
+  tauri::async_runtime::spawn_blocking(move || {
+    services::batch::run_batch(&app, job_id, &files, |source| {
+      tools::image::convert::convert_file(source, &output_dir, format, quality, &resize)
     })
-    .collect()
+  })
+  .await
+  .map_err(|error| ProcessingErrorDto::processing_failed(format!("Processing task failed: {error}")))?
+  .map_err(ProcessingErrorDto::from)
 }

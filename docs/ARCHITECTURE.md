@@ -414,6 +414,8 @@ Coordinates: validate square source → decode → resize into predefined target
 
 Shared internal primitives are appropriate here because these three tools operate on the same image domain. Do not expose those primitives as app-wide tool abstractions.
 
+Phase 2 selected the concrete crate set: `image` 0.25 (PNG/JPEG decode+encode, resize, ICO for the Logo Pack), `image-webp` 0.2 (pure-Rust WebP decode incl. lossy, lossless-only encode), and `libwebp-sys2` 0.2 (C FFI, vendored libwebp) used only for **lossy WebP encode** behind the isolated wrapper in `tools/image/webp.rs`. `image-webp` is required for WebP input because `image`'s built-in WebP decoder is lossless-only. `rayon` provides the bounded batch thread pool.
+
 ---
 
 ## 18. Web Logo Pack Presets

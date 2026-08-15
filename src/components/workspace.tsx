@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { InputFile, ResizeOptions } from '@/services/tauri'
 import { Button, Segmented, cx } from './ui'
-import { AlertIcon, CheckIcon, ChevronDown, FolderIcon, ImageIcon, SpinnerIcon, UploadIcon, XIcon } from './ui/icons'
+import { AlertIcon, CheckIcon, ChevronDown, FolderIcon, ImageIcon, LockIcon, SpinnerIcon, UnlockIcon, UploadIcon, XIcon } from './ui/icons'
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 
 export const formatBytes = (bytes: number) => bytes < 1024 ** 2 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 ** 2).toFixed(bytes < 10 * 1024 ** 2 ? 1 : 0)} MB`
@@ -32,12 +32,39 @@ export function FileRow({ file, status = 'idle', onRemove, error }: { file: Inpu
 
 export function FileListHeader({ count, onAddMore, onClear }: { count: number; onAddMore: () => void; onClear: () => void }) { return <SectionLabel hint={<div className="flex items-center gap-2 -mb-1"><button onClick={() => onAddMore()} className="rounded-[var(--radius-sm)] px-2 py-1 text-[12px] text-muted-foreground hover:bg-muted hover:text-foreground">Add more</button><button onClick={onClear} className="rounded-[var(--radius-sm)] px-2 py-1 text-[12px] font-medium text-danger hover:bg-danger-surface">Clear all</button></div>}>{count} {count === 1 ? 'file' : 'files'}</SectionLabel> }
 
-export function ResizePanel({ value, onChange }: { value: ResizeOptions; onChange: (value: ResizeOptions) => void }) {
-  const [open, setOpen] = useState(false); const [width, setWidth] = useState(2400); const [height, setHeight] = useState(1600); const [scale, setScale] = useState(50); const [locked, setLocked] = useState(true)
+export function ResizePanel({ value, onChange, sourceSize }: { value: ResizeOptions; onChange: (value: ResizeOptions) => void; sourceSize?: { width: number; height: number } }) {
+  const [open, setOpen] = useState(false); const [width, setWidth] = useState(sourceSize?.width ?? 2400); const [height, setHeight] = useState(sourceSize?.height ?? 1600); const [scale, setScale] = useState(50); const [locked, setLocked] = useState(true)
   const summary = value.mode === 'original' ? 'Original size' : value.mode === 'dimensions' ? `${value.width} × ${value.height} px` : `${value.percentage}%`
   const mode = value.mode
+  const sourceRatio = sourceSize && sourceSize.width > 0 && sourceSize.height > 0 ? sourceSize.height / sourceSize.width : undefined
   const setMode = (next: ResizeOptions['mode']) => onChange(next === 'original' ? { mode: 'original' } : next === 'dimensions' ? { mode: 'dimensions', width, height, lockAspectRatio: locked } : { mode: 'percentage', percentage: scale })
-  return <div className="rounded-[var(--radius)] border border-border bg-card/60"><button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between px-3.5 py-3 text-left"><div className="flex items-baseline gap-2.5"><span className="text-[13.5px] font-medium">Resize</span><span className="font-mono text-[11.5px] text-muted-foreground">{summary}</span></div><ChevronDown size={16} className={cx('text-muted-foreground transition-transform', open && 'rotate-180')}/></button><div className={cx('grid transition-[grid-template-rows] duration-200', open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}><div className="overflow-hidden"><div className="px-3.5 pb-4 pt-3.5 border-t border-border"><Segmented value={mode} onChange={setMode} options={[{value:'original',label:'Original'},{value:'dimensions',label:'Dimensions'},{value:'percentage',label:'Percentage'}]}/>{mode === 'dimensions' && <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-end gap-3"><NumberField label="Width" value={width} suffix="px" onChange={(v) => { setWidth(v); onChange({mode:'dimensions',width:v,height,lockAspectRatio:locked}) }}/><button aria-label="Toggle aspect ratio lock" onClick={() => { setLocked(!locked); onChange({mode:'dimensions',width,height,lockAspectRatio:!locked}) }} className="mb-0 h-9 w-9 rounded border border-border-strong bg-muted text-[12px]">{locked ? '🔒' : '↔'}</button><NumberField label="Height" value={height} suffix="px" onChange={(v) => { setHeight(v); onChange({mode:'dimensions',width,height:v,lockAspectRatio:locked}) }}/></div>}{mode === 'percentage' && <div className="mt-4 max-w-[180px]"><NumberField label="Scale" value={scale} suffix="%" onChange={(v) => { setScale(v); onChange({mode:'percentage',percentage:v}) }}/></div>}{mode === 'original' && <p className="mt-3.5 text-[13px] text-muted-foreground">Images keep their original dimensions. No cropping is applied.</p>}</div></div></div></div>
+  const onWidthChange = (v: number) => {
+    setWidth(v)
+    if (locked) {
+      const ratio = sourceRatio ?? height / Math.max(1, width)
+      const nextHeight = Math.max(1, Math.round(v * ratio))
+      setHeight(nextHeight)
+      onChange({ mode: 'dimensions', width: v, height: nextHeight, lockAspectRatio: true })
+    } else {
+      onChange({ mode: 'dimensions', width: v, height, lockAspectRatio: false })
+    }
+  }
+  const onHeightChange = (v: number) => {
+    setHeight(v)
+    if (locked) {
+      const ratio = sourceRatio ?? width / Math.max(1, height)
+      const nextWidth = Math.max(1, Math.round(v * ratio))
+      setWidth(nextWidth)
+      onChange({ mode: 'dimensions', width: nextWidth, height: v, lockAspectRatio: true })
+    } else {
+      onChange({ mode: 'dimensions', width, height: v, lockAspectRatio: false })
+    }
+  }
+  const toggleLock = () => {
+    setLocked(!locked)
+    onChange({ mode: 'dimensions', width, height, lockAspectRatio: !locked })
+  }
+  return <div className="rounded-[var(--radius)] border border-border bg-card/60"><button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between px-3.5 py-3 text-left"><div className="flex items-baseline gap-2.5"><span className="text-[13.5px] font-medium">Resize</span><span className="font-mono text-[11.5px] text-muted-foreground">{summary}</span></div><ChevronDown size={16} className={cx('text-muted-foreground transition-transform', open && 'rotate-180')}/></button><div className={cx('grid transition-[grid-template-rows] duration-200', open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}><div className="overflow-hidden"><div className="px-3.5 pb-4 pt-3.5 border-t border-border"><Segmented value={mode} onChange={setMode} options={[{value:'original',label:'Original'},{value:'dimensions',label:'Dimensions'},{value:'percentage',label:'Percentage'}]}/>{mode === 'dimensions' && <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-end gap-3"><NumberField label="Width" value={width} suffix="px" onChange={onWidthChange}/><button aria-label={locked ? 'Unlock aspect ratio' : 'Lock aspect ratio'} onClick={toggleLock} className={cx('mb-0 grid h-9 w-9 place-items-center rounded border bg-muted', locked ? 'border-border-strong text-foreground' : 'border-border text-muted-foreground')}>{locked ? <LockIcon size={16}/> : <UnlockIcon size={16}/>}</button><NumberField label="Height" value={height} suffix="px" onChange={onHeightChange}/></div>}{mode === 'percentage' && <div className="mt-4 max-w-[180px]"><NumberField label="Scale" value={scale} suffix="%" onChange={(v) => { setScale(v); onChange({mode:'percentage',percentage:v}) }}/></div>}{mode === 'original' && <p className="mt-3.5 text-[13px] text-muted-foreground">Images keep their original dimensions. No cropping is applied.</p>}</div></div></div></div>
 }
 function NumberField({ label, value, suffix, onChange }: { label: string; value: number; suffix: string; onChange: (value: number) => void }) { return <label><span className="block text-[11px] font-medium uppercase tracking-[.07em] text-subtle-foreground mb-1.5">{label}</span><div className="relative"><input value={value} onChange={(e) => onChange(Number(e.target.value.replace(/\D/g,'')))} className="w-full h-9 px-2.5 pr-9 rounded-[var(--radius-sm)] border border-border-strong bg-elevated font-mono text-[13.5px] outline-none focus:ring-2 focus:ring-ring/45"/><span className="absolute right-2.5 top-1/2 -translate-y-1/2 font-mono text-[11.5px] text-subtle-foreground">{suffix}</span></div></label> }
 

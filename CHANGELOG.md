@@ -2,6 +2,12 @@
 
 Concise task-level record of completed project work and important handoff context.
 
+## Phase 2 — Image Processing Core + Image Converter — 2026-08-15
+
+- Changed: Replaced the mocked `convertImages` with a real Rust pipeline — real image inspection (format, dimensions, file size) in `inspect_files` with shallow folder-drop expansion and invalid-file flagging, lossy PNG/JPG/WebP conversion with optional resize, bounded-concurrency batch processing with per-file failure isolation and live progress events, auto-renaming non-destructive export, and structured error responses surfaced inline in the workspace. Resize aspect-ratio lock now updates the companion dimension against the source image's ratio (replacing the emoji toggle with library icons), and removing the last file returns to the drop zone instead of an empty list.
+- Decision: `image` 0.25 + `image-webp` 0.2 (pure-Rust WebP decode) for the core, with `libwebp-sys2` 0.2 (C FFI) for lossy WebP output only; `convert_images` returns `Result<BatchResult, ProcessingErrorDto>` and the adapter injects a `jobId` to correlate progress events without changing component signatures.
+- Verified: `cargo build`, `cargo test` (14 unit/integration tests incl. PNG→JPG→WebP round trips, collision renaming, resize math), and `npm run build` passed; visual smoke test left to the owner.
+
 ## Frontend Brief — 2026-08-15
 
 - Changed: Scaffolded the Tauri 2 frontend and implemented the Figma-based launcher, settings, three tool workflows, shared states, themes, and UI refinements.
@@ -15,3 +21,5 @@ Concise task-level record of completed project work and important handoff contex
 - Verified: `npm run build` and `cargo check` passed; visual smoke test left to the owner.
 
 <!-- task: 2026-08-15-phase-1-tauri-shell-integration -->
+
+<!-- task: 2026-08-15-phase-2-image-core-converter -->

@@ -8,6 +8,8 @@ export const UploadIcon = (p: IconProps) => <Base {...p}><path d="M12 15V4M12 4 
 export const FolderIcon = (p: IconProps) => <Base {...p}><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></Base>
 export const ImageIcon = (p: IconProps) => <Base {...p}><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m4 17 4.5-4.5a2 2 0 0 1 2.8 0L20 21"/></Base>
 export const XIcon = (p: IconProps) => <Base {...p}><path d="M6 6l12 12M18 6 6 18"/></Base>
+export const LockIcon = (p: IconProps) => <Base {...p}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Base>
+export const UnlockIcon = (p: IconProps) => <Base {...p}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></Base>
 export const ChevronDown = (p: IconProps) => <Base {...p}><path d="m6 9 6 6 6-6"/></Base>
 export const ArrowLeft = (p: IconProps) => <Base {...p}><path d="M19 12H5M5 12l6-6M5 12l6 6"/></Base>
 export const CheckIcon = (p: IconProps) => <Base {...p}><path d="M4 12.5 9 17.5 20 6.5"/></Base>
