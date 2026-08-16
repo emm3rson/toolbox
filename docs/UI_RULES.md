@@ -1,73 +1,21 @@
 # Toolbox — UI Rules
 
-## 1. Direction
+## 1. Direction & Style
 
-Polished developer utility: clean, minimal, calm, precise, understated. Never
-decorative at the expense of speed or clarity. Every control and layout must feel
-intentional, unified, and free of visual noise.
+- **Philosophy**: Clean, minimal, calm developer utility. Every layout must feel unified and free of visual noise.
+- **Palette**: Neutral studio surfaces (soft `#f4f3f0` background, softened `#f8f7f4` cards, `#fdfcfb` elevated highlights). Never use stark pure white cards that glare against the background. Dark mode uses identical calm layered contrast.
+- **Typography & Copy**: Clean sans-serif; font-mono for numbers, paths, and dimensions. **Never use em-dashes (`—`) in UI copy**; use colons (`:`), middle dots (`·`), or parentheses (`(...)`).
+- **Transparency**: Transparent images render over `.bg-transparency-grid` so white/dark graphics remain visible in all themes.
 
-## 2. Layout
+## 2. Layout & Structure
 
-- **Launcher**: Compact 3-column tool grid (icon box `h-10 w-10` + tool name +
-  short description) that stays 3 columns across screen sizes. Subheader: "Local
-  utilities for daily workflows. Nothing leaves your machine."
-- **Workspace**: Top-to-bottom flow (files → settings → export location → primary
-  action). Wide layouts use two columns: left queue (`minmax(0, 1fr)`), right
-  sidebar (`340px` or `240px` for single source tools). One focused workspace per
-  tool, not a wizard.
-- **Settings sidebar**: Tool controls (format, quality, resize) must be grouped
-  inside cohesive bordered cards (`rounded-[var(--radius-lg)] border border-border-strong bg-card p-4`),
-  not floating loose controls on the background.
+- **Launcher**: Compact 3-column tool card grid across all window sizes.
+- **Workspace**: Top-to-bottom flow (files → settings → export location → primary CTA). Two columns on desktop: queue on left (`minmax(0, 1fr)`), settings sidebar on right (`340px` or `240px`).
+- **Settings Cards**: Group tool settings inside cohesive bordered cards (`bg-card border border-border-strong rounded-[var(--radius-lg)] p-4`), not floating loose controls.
 
-## 3. Style & Palette
+## 3. Components & Interaction
 
-- **Surfaces**: Soft off-white studio background (`#f4f3f0`), softened warm card
-  surfaces (`#f8f7f4`), and gentle elevated highlights (`#fdfcfb`). Never use stark
-  pure white cards that create harsh contrast against the background. Dark mode
-  maintains identical calm layered contrast (`#17161a` → `#1e1d21` → `#26252a`).
-- **Typography & Punctuation**: Clean sans-serif; hierarchy via size/weight/spacing;
-  font-mono for numbers, dimensions, and paths. **Never use em-dashes (`—`) in UI copy**;
-  use colons (`:`), middle dots (`·`), or parentheses (`(...)`).
-- **Transparency**: Transparent images (PNG/WebP) render over a subtle CSS
-  transparency checkerboard (`.bg-transparency-grid`) so white/dark graphics remain
-  visible in both light and dark modes.
-
-## 4. Components & States
-
-- **Drop Zone**: Dashed border with subtle hover/drag-over scale feedback; concise
-  hint without redundant disclaimers.
-- **File Rows**: Compact list item with real `36x36 px` image thumbnail (`object-cover`
-  over transparency grid + extension pill) and fallback to icon on decode error;
-  filename, dimensions, size; row remove on hover.
-- **Image Previews**: Web Logo Pack renders a real square preview canvas
-  (`object-contain` over transparency grid) with integrated "Replace image" button;
-  no noisy placeholder glyphs or redundant badges.
-- **Quality Control**: Large `22px` mono number on top right, with `"max compression"`
-  and `"near-lossless"` footer captions. One-line lossless note: "PNG is lossless.
-  Quality slider applies to JPG and WebP only." (no size estimates).
-- **Secondary Actions**: Destructive actions like "Clear all" must remain muted
-  (`text-muted-foreground`) and highlight danger red only on hover, preserving focus
-  on the primary CTA.
-- **Completion / Post-Process**: Elevated summary card with metrics, failures,
-  and action buttons aligned with the text column. Action buttons consistently pair
-  contextual icons (`FolderIcon`, `RotateCcwIcon`, `CopyIcon`).
-- **Partial failure**: One bad file never blocks the batch; failures listed with
-  filename and error reason separated by a colon.
-
-## 5. Interaction
-
-- Export/Generate enabled only with valid input + usable destination; remembers
-  app-wide default export path.
-- Conflicts always auto-rename; never overwrite source files.
-- Resize optional and collapsed (Original / Dimensions / Percentage with aspect lock).
-- One clear primary button; secondary buttons use outline/ghost with icons.
-
-## 6. Accessibility
-
-Keyboard-operable controls with visible focus rings; toggle buttons expose
-`aria-checked`; labels on icon-only controls; color never the sole signal.
-
-## 7. Owner visual checklist
-
-`npm run tauri dev`: launcher 3-column grid, empty/drop, real thumbnails, dark/light
-parity, settings cards, completion text alignment + icons, and Logo Pack square preview.
+- **Thumbnails & Previews**: Queue items show real 36x36 px thumbnails (`object-cover`) with extension badge and icon fallback on error. Logo pack shows uncropped square preview (`object-contain`).
+- **Control Hierarchy**: Quality sliders show prominent mono score with `"max compression"` / `"near-lossless"` bounds. One clear primary button; secondary destructive actions ("Clear all") stay muted (`text-muted-foreground`) until hovered.
+- **Completion Screen**: Elevated summary card with metrics, failures, and action buttons (`FolderIcon`, `RotateCcwIcon`, `CopyIcon`) aligned to the message text column.
+- **Non-Destructive**: Auto-rename on collision; never overwrite source files.
