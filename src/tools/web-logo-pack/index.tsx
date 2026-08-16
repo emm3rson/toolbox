@@ -16,6 +16,7 @@ import {
   ExportLocation,
   SectionLabel,
   formatBytes,
+  toAssetUrl,
 } from '@/components/workspace'
 import {
   desktop,
@@ -144,6 +145,7 @@ export function WebLogoPack() {
   const { exportPath, chooseExportPath, tool, setToolPrefs } = useSettings()
   const [phase, setPhase] = useState<Phase>('empty')
   const [source, setSource] = useState<InputFile>()
+  const [previewError, setPreviewError] = useState(false)
   const [invalidReason, setInvalidReason] =
     useState<InvalidReason>('non-square')
   const [presets, setPresets] =
@@ -194,6 +196,7 @@ export function WebLogoPack() {
     if (selectedFiles.length === 0) return
     const [file] = await desktop.inspectFiles(selectedFiles)
     setSource(file)
+    setPreviewError(false)
     if (file.status === 'invalid') {
       setInvalidReason('unsupported')
       setPhase('invalid')
@@ -216,6 +219,7 @@ export function WebLogoPack() {
   const reset = () => {
     setPhase('empty')
     setSource(undefined)
+    setPreviewError(false)
     setAssets(toAssetRows(presets))
     setProgress(0)
     setResult(undefined)
@@ -258,6 +262,9 @@ export function WebLogoPack() {
       )
     }
   }
+
+  const previewUrl =
+    source && !previewError ? toAssetUrl(source.path) : undefined
 
   if (phase === 'empty') {
     return (
@@ -393,26 +400,33 @@ export function WebLogoPack() {
       <aside>
         <SectionLabel>Source</SectionLabel>
         <div className="rounded-[var(--radius-lg)] border border-border-strong bg-card p-4">
-          <div className="flex items-start gap-3">
-            <div className="relative h-10 w-10 shrink-0 rounded-[8px] bg-muted grid place-items-center text-muted-foreground overflow-hidden">
-              <ImageIcon size={19} />
-              <span className="absolute bottom-0 inset-x-0 text-[7.5px] font-semibold uppercase text-center bg-foreground/72 text-background leading-[10px]">
-                {source.extension}
-              </span>
-            </div>
+          <div className="aspect-square w-full rounded-[var(--radius-sm)] overflow-hidden bg-transparency-grid border border-border flex items-center justify-center p-3 mb-3.5">
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt={source.name}
+                className="max-h-full max-w-full object-contain rounded-[4px] shadow-sm select-none"
+                onError={() => setPreviewError(true)}
+              />
+            ) : (
+              <div className="text-center text-muted-foreground">
+                <ImageIcon size={28} className="mx-auto mb-1 opacity-70" />
+                <span className="font-mono text-[10.5px]">preview unavailable</span>
+              </div>
+            )}
+          </div>
 
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[13.5px] font-medium text-foreground">
-                {source.name}
-              </p>
-              <p className="font-mono text-[11.5px] text-muted-foreground mt-0.5 tabular-nums">
-                {source.width > 0 && source.height > 0
-                  ? `${source.width.toLocaleString()} × ${source.height.toLocaleString()}`
-                  : ''}
-                <span className="text-border-strong mx-1.5">·</span>
-                {formatBytes(source.size)}
-              </p>
-            </div>
+          <div>
+            <p className="truncate text-[13.5px] font-medium text-foreground">
+              {source.name}
+            </p>
+            <p className="font-mono text-[11.5px] text-muted-foreground mt-0.5 tabular-nums">
+              {source.width > 0 && source.height > 0
+                ? `${source.width.toLocaleString()} × ${source.height.toLocaleString()}`
+                : ''}
+              <span className="text-border-strong mx-1.5">·</span>
+              {formatBytes(source.size)}
+            </p>
           </div>
 
           {source.width >= 512 && source.width === source.height && (

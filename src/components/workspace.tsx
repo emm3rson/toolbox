@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { InputFile, ResizeOptions } from '@/services/tauri'
+import { convertFileSrc } from '@tauri-apps/api/core'
 import { Button, Segmented, cx } from './ui'
 import {
   AlertIcon,
@@ -20,6 +21,15 @@ export const formatBytes = (bytes: number) =>
   bytes < 1024 ** 2
     ? `${Math.round(bytes / 1024)} KB`
     : `${(bytes / 1024 ** 2).toFixed(bytes < 10 * 1024 ** 2 ? 1 : 0)} MB`
+
+export function toAssetUrl(filePath?: string): string | undefined {
+  if (!filePath) return undefined
+  try {
+    return convertFileSrc(filePath)
+  } catch {
+    return undefined
+  }
+}
 
 export function SectionLabel({
   children,
@@ -130,6 +140,10 @@ export function FileRow({
   onRemove?: () => void
   error?: string
 }) {
+  const [loadError, setLoadError] = useState(false)
+  const isImageValid = file.status === 'ready' && !loadError
+  const assetUrl = isImageValid ? toAssetUrl(file.path) : undefined
+
   return (
     <div
       className={cx(
@@ -137,9 +151,18 @@ export function FileRow({
         status === 'failed' ? 'bg-danger-surface' : 'hover:bg-muted/60'
       )}
     >
-      <div className="relative h-9 w-9 shrink-0 rounded-[6px] bg-muted grid place-items-center text-muted-foreground overflow-hidden">
-        <ImageIcon size={17} />
-        <span className="absolute bottom-0 inset-x-0 text-[7.5px] font-semibold uppercase text-center bg-foreground/72 text-background leading-[10px]">
+      <div className="relative h-9 w-9 shrink-0 rounded-[6px] bg-muted grid place-items-center text-muted-foreground overflow-hidden bg-transparency-grid border border-border/70">
+        {assetUrl ? (
+          <img
+            src={assetUrl}
+            alt={file.name}
+            className="h-full w-full object-cover select-none"
+            onError={() => setLoadError(true)}
+          />
+        ) : (
+          <ImageIcon size={17} />
+        )}
+        <span className="absolute bottom-0 inset-x-0 text-[7.5px] font-semibold uppercase text-center bg-foreground/75 text-background leading-[10px] backdrop-blur-[1px]">
           {file.extension}
         </span>
       </div>

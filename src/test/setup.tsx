@@ -26,8 +26,13 @@ vi.mock('@/services/settings', () => ({
   loadSettings: vi.fn().mockResolvedValue({}),
   saveSettings: vi.fn(),
 }))
+vi.mock('@tauri-apps/api/core', () => ({
+  convertFileSrc: (path: string) => `asset://${path.replace(/\\/g, '/')}`,
+}))
 vi.mock('@tauri-apps/api/webview', () => ({
-  getCurrentWebview: () => ({ onDragDropEvent: vi.fn(() => Promise.resolve(() => {})) }),
+  getCurrentWebview: () => ({
+    onDragDropEvent: vi.fn(() => Promise.resolve(() => {})),
+  }),
 }))
 
 Object.defineProperty(window, 'matchMedia', {

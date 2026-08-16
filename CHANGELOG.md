@@ -2,6 +2,12 @@
 
 Concise task-level record of completed project work and important handoff context.
 
+## Real Image Previews and File Thumbnails — 2026-08-16
+
+- Changed: Replaced placeholder icon boxes with real image thumbnails in Convert Images and Compress Images file queues, added a large dedicated square image preview with subtle transparency grid in Web Logo Pack, and enabled Tauri 2's asset protocol (`protocol-asset`).
+- Decision: Image thumbnails use `object-cover` in file queues and `object-contain` in the Logo Pack canvas, backed by a subtle CSS transparency checkerboard pattern and graceful icon fallback on decode failure.
+- Verified: `npm run test` (8), `npm run build`, and `cargo check` passed.
+
 ## Main Screens Consistency & UI Polish — 2026-08-16
 
 - Changed: Unified Convert Images settings into a cohesive bordered card matching Compress Images, aligned quality slider presentation (22px mono score with max-compression/near-lossless labels), replaced Web Logo Pack's placeholder with a compact source card with integrated image replace button, locked launcher tool grid to 3 columns, removed em-dashes, and restrained "Clear all" button to muted text highlighting on hover.
