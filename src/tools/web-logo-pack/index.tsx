@@ -316,49 +316,69 @@ export function WebLogoPack() {
   }
 
   if (phase === 'done' && result) {
+    const isAllFailed = result.batch.succeeded === 0
+    const isPartial = result.batch.succeeded > 0 && result.batch.failed > 0
+    const status = isAllFailed ? 'error' : isPartial ? 'warning' : 'success'
+    const headline = isAllFailed
+      ? 'No assets generated'
+      : `${result.batch.succeeded} assets generated`
+
     return (
-      <div className="mx-auto max-w-[620px]">
+      <div className="mx-auto max-w-[760px]">
         <Completion
-          headline={`${result.batch.succeeded} assets generated`}
+          status={status}
+          headline={headline}
           metrics={
-            <p className="font-mono text-[13px] text-muted-foreground">
-              Saved to{' '}
-              <span className="text-foreground font-medium">
-                {result.packDirectory}
-              </span>
-            </p>
+            !isAllFailed ? (
+              <p className="font-mono text-[13px] text-muted-foreground">
+                Saved to{' '}
+                <span className="text-foreground font-medium">
+                  {result.packDirectory}
+                </span>
+              </p>
+            ) : null
           }
           failures={result.batch.items.filter((item) => !item.success)}
           actions={
-            <>
+            isAllFailed ? (
               <Button
                 variant="primary"
-                icon={<FolderIcon size={16} />}
-                onClick={() => desktop.openFolder(result.packDirectory)}
-              >
-                Open folder
-              </Button>
-              <Button
-                icon={<CopyIcon size={15} />}
-                onClick={async () => {
-                  await navigator.clipboard?.writeText(snippet)
-                  setCopied(true)
-                  setTimeout(() => setCopied(false), 1600)
-                }}
-              >
-                {copied ? 'Copied' : 'Copy snippet'}
-              </Button>
-              <Button
-                variant="ghost"
                 icon={<RotateCcwIcon size={15} />}
                 onClick={reset}
               >
-                Process another
+                Try again
               </Button>
-            </>
+            ) : (
+              <>
+                <Button
+                  variant="primary"
+                  icon={<FolderIcon size={16} />}
+                  onClick={() => desktop.openFolder(result.packDirectory)}
+                >
+                  Open folder
+                </Button>
+                <Button
+                  icon={<CopyIcon size={15} />}
+                  onClick={async () => {
+                    await navigator.clipboard?.writeText(snippet)
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 1600)
+                  }}
+                >
+                  {copied ? 'Copied' : 'Copy snippet'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  icon={<RotateCcwIcon size={15} />}
+                  onClick={reset}
+                >
+                  Process another
+                </Button>
+              </>
+            )
           }
         >
-          <div className="mt-6 rounded-[var(--radius)] border border-border bg-card/60 overflow-hidden">
+          {!isAllFailed && <div className="mt-6 rounded-[var(--radius)] border border-border bg-card/60 overflow-hidden">
             <button
               onClick={() => setSnippetOpen(!snippetOpen)}
               className="flex w-full items-center justify-between px-3.5 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
@@ -386,7 +406,7 @@ export function WebLogoPack() {
                 </pre>
               </div>
             </div>
-          </div>
+          </div>}
         </Completion>
       </div>
     )

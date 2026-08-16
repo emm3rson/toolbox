@@ -154,6 +154,11 @@ export function BatchWorkspace({ mode }: { mode: 'convert' | 'compress' }) {
   }
 
   if (phase === 'done' && result) {
+    const failures = result.items.filter((item) => !item.success)
+    const isAllFailed = result.succeeded === 0
+    const isPartial = result.succeeded > 0 && failures.length > 0
+    const status = isAllFailed ? 'error' : isPartial ? 'warning' : 'success'
+
     const before = result.items
       .filter((item) => item.success)
       .reduce((sum, item) => sum + item.originalSize, 0)
@@ -162,16 +167,21 @@ export function BatchWorkspace({ mode }: { mode: 'convert' | 'compress' }) {
       0
     )
 
+    const headline = isAllFailed
+      ? mode === 'convert'
+        ? 'No files converted'
+        : 'No files compressed'
+      : mode === 'convert'
+        ? `${result.succeeded} ${result.succeeded === 1 ? 'file' : 'files'} converted to ${format.toUpperCase()}`
+        : `${result.succeeded} ${result.succeeded === 1 ? 'file' : 'files'} compressed`
+
     return (
-      <div className="mx-auto max-w-[620px]">
+      <div className="mx-auto max-w-[760px]">
         <Completion
-          headline={
-            mode === 'convert'
-              ? `${result.succeeded} ${result.succeeded === 1 ? 'file' : 'files'} converted to ${format.toUpperCase()}`
-              : `${result.succeeded} ${result.succeeded === 1 ? 'file' : 'files'} compressed`
-          }
+          status={status}
+          headline={headline}
           metrics={
-            mode === 'compress' ? (
+            isAllFailed ? null : mode === 'compress' ? (
               <BeforeAfter before={before} after={after} />
             ) : (
               <p className="font-mono text-[13px] text-muted-foreground">
@@ -179,25 +189,36 @@ export function BatchWorkspace({ mode }: { mode: 'convert' | 'compress' }) {
               </p>
             )
           }
-          failures={result.items.filter((item) => !item.success)}
+          failures={failures}
           actions={
-            <>
+            isAllFailed ? (
               <Button
                 variant="primary"
-                icon={<FolderIcon size={16} />}
-                onClick={() => desktop.openFolder(exportPath)}
+                icon={<RotateCcwIcon size={15} />}
+                onClick={reset}
               >
-                Open folder
+                Try again
               </Button>
-              <Button icon={<RotateCcwIcon size={15} />} onClick={reset}>
-                Process more
-              </Button>
-            </>
+            ) : (
+              <>
+                <Button
+                  variant="primary"
+                  icon={<FolderIcon size={16} />}
+                  onClick={() => desktop.openFolder(exportPath)}
+                >
+                  Open folder
+                </Button>
+                <Button icon={<RotateCcwIcon size={15} />} onClick={reset}>
+                  Process more
+                </Button>
+              </>
+            )
           }
         />
       </div>
     )
   }
+
 
   const statuses = (file: InputFile): RowStatus =>
     file.status === 'invalid'

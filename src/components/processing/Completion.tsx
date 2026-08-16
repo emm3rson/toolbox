@@ -1,33 +1,78 @@
 import type { ReactNode } from 'react'
 import type { FileResult } from '@/services/tauri'
 import { AlertIcon, CheckIcon } from '../ui/icons'
+import { cx } from '../ui'
 import { formatBytes } from '../workspace'
+
+export type CompletionStatus = 'success' | 'warning' | 'error'
 
 export function Completion({
   headline,
+  status = 'success',
   metrics,
   failures = [],
+  warnings = [],
   actions,
   children,
 }: {
   headline: string
+  status?: CompletionStatus
   metrics?: ReactNode
   failures?: FileResult[]
+  warnings?: FileResult[]
   actions: ReactNode
   children?: ReactNode
 }) {
+  const isError = status === 'error'
+  const isWarning = status === 'warning'
+
   return (
     <div className="pt-2">
       <div className="rounded-[var(--radius-lg)] border border-border bg-card p-6 shadow-sm">
         <div className="flex items-start gap-4">
-          <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-success-surface text-success">
-            <CheckIcon size={20} />
+          <span
+            className={cx(
+              'mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full',
+              isError
+                ? 'bg-danger-surface text-danger'
+                : isWarning
+                  ? 'bg-warning-surface text-warning'
+                  : 'bg-success-surface text-success'
+            )}
+          >
+            {isError || isWarning ? <AlertIcon size={20} /> : <CheckIcon size={20} />}
           </span>
           <div className="flex-1 min-w-0">
             <h2 className="text-[20px] font-semibold tracking-[-.015em] text-foreground">
               {headline}
             </h2>
             {metrics && <div className="mt-2">{metrics}</div>}
+
+            {warnings.length > 0 && (
+              <div className="mt-5 rounded-[var(--radius)] border border-warning/30 bg-warning-surface/70 px-4 py-3.5">
+                <div className="flex items-center gap-2 text-warning">
+                  <AlertIcon size={16} />
+                  <span className="text-[13.5px] font-medium">
+                    {warnings.length} {warnings.length === 1 ? 'file contains' : 'files contain'} pages requiring OCR
+                  </span>
+                </div>
+                <ul className="mt-2.5 space-y-1.5">
+                  {warnings.map((item) => (
+                    <li
+                      key={item.sourcePath}
+                      className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[13px]"
+                    >
+                      <span className="font-mono font-medium text-foreground break-all">
+                        {item.sourcePath.split(/[/\\]/).pop()}
+                      </span>
+                      <span className="text-muted-foreground">
+                        : {item.warnings?.map((w) => w.message).join('; ') || 'OCR required for some pages'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {failures.length > 0 && (
               <div className="mt-5 rounded-[var(--radius)] border border-danger/25 bg-danger-surface/70 px-4 py-3.5">
@@ -41,12 +86,12 @@ export function Completion({
                   {failures.map((failure) => (
                     <li
                       key={failure.sourcePath}
-                      className="flex items-baseline gap-2 text-[13px]"
+                      className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[13px]"
                     >
-                      <span className="truncate font-mono font-medium">
-                        {failure.sourcePath.split('\\').pop()}
+                      <span className="font-mono font-medium text-foreground break-all">
+                        {failure.sourcePath.split(/[/\\]/).pop()}
                       </span>
-                      <span className="text-muted-foreground shrink-0">
+                      <span className="text-muted-foreground">
                         : {failure.error?.message}
                       </span>
                     </li>
@@ -54,6 +99,8 @@ export function Completion({
                 </ul>
               </div>
             )}
+
+
 
             {children}
 

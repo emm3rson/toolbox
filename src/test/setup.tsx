@@ -10,8 +10,10 @@ afterEach(() => cleanup())
 const { mockDesktop } = vi.hoisted(() => {
   const desktop: Record<keyof TauriAdapter, ReturnType<typeof vi.fn>> = {
     inspectFiles: vi.fn(),
+    inspectPdfs: vi.fn(),
     convertImages: vi.fn(),
     compressImages: vi.fn(),
+    convertPdfs: vi.fn(),
     generateLogoPack: vi.fn(),
     getLogoPresets: vi.fn(),
     pickFiles: vi.fn(),
@@ -55,8 +57,10 @@ const emptyBatch = { total: 0, succeeded: 0, failed: 0, items: [] }
 
 export function resetMockTauri(): void {
   mockTauri.inspectFiles.mockReset().mockResolvedValue([])
+  mockTauri.inspectPdfs.mockReset().mockResolvedValue([])
   mockTauri.convertImages.mockReset().mockResolvedValue(emptyBatch)
   mockTauri.compressImages.mockReset().mockResolvedValue(emptyBatch)
+  mockTauri.convertPdfs.mockReset().mockResolvedValue(emptyBatch)
   mockTauri.generateLogoPack.mockReset().mockResolvedValue({
     packDirectory: 'C:\\out\\web-pack',
     batch: emptyBatch,
@@ -66,6 +70,7 @@ export function resetMockTauri(): void {
   mockTauri.pickFolder.mockReset().mockResolvedValue(null)
   mockTauri.openFolder.mockReset().mockResolvedValue(undefined)
 }
+
 
 export function renderWithProviders(ui: ReactElement) {
   return render(<SettingsProvider>{ui}</SettingsProvider>)

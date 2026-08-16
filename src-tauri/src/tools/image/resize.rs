@@ -116,12 +116,12 @@ mod tests {
       },
     )
     .unwrap_err();
-    assert_eq!(err.to_string().contains("greater than zero"), true);
+    assert!(err.to_string().contains("greater than zero"));
   }
 
   #[test]
   fn zero_percentage_is_rejected() {
     let err = target_size((1200, 800), &ResizeOptions::Percentage { percentage: 0 }).unwrap_err();
-    assert_eq!(err.to_string().contains("greater than zero"), true);
+    assert!(err.to_string().contains("greater than zero"));
   }
 }

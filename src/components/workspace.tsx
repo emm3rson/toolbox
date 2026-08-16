@@ -6,6 +6,7 @@ import {
   AlertIcon,
   CheckIcon,
   ChevronDown,
+  DocumentIcon,
   FolderIcon,
   ImageIcon,
   LockIcon,
@@ -15,6 +16,7 @@ import {
   UploadIcon,
   XIcon,
 } from './ui/icons'
+
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 
 export const formatBytes = (bytes: number) =>
@@ -51,9 +53,11 @@ export function SectionLabel({
 export function DropZone({
   onAdd,
   hint,
+  label = 'Drop images here',
 }: {
   onAdd: (paths?: string[]) => void
   hint?: ReactNode
+  label?: string
 }) {
   const [over, setOver] = useState(false)
   const onAddRef = useRef(onAdd)
@@ -109,7 +113,7 @@ export function DropZone({
           <UploadIcon size={20} />
         </div>
         <p className="text-[15px] font-medium text-foreground">
-          {over ? 'Drop to add files' : 'Drop images here'}
+          {over ? 'Drop to add files' : label}
         </p>
         <p className="text-[13px] text-muted-foreground mt-1">
           or{' '}
@@ -141,7 +145,8 @@ export function FileRow({
   error?: string
 }) {
   const [loadError, setLoadError] = useState(false)
-  const isImageValid = file.status === 'ready' && !loadError
+  const isPdf = file.extension.toLowerCase() === 'pdf'
+  const isImageValid = file.status === 'ready' && !loadError && !isPdf
   const assetUrl = isImageValid ? toAssetUrl(file.path) : undefined
 
   return (
@@ -151,7 +156,12 @@ export function FileRow({
         status === 'failed' ? 'bg-danger-surface' : 'hover:bg-muted/60'
       )}
     >
-      <div className="relative h-9 w-9 shrink-0 rounded-[6px] bg-muted grid place-items-center text-muted-foreground overflow-hidden bg-transparency-grid border border-border/70">
+      <div
+        className={cx(
+          'relative h-9 w-9 shrink-0 rounded-[6px] bg-muted grid place-items-center text-muted-foreground overflow-hidden border border-border/70',
+          assetUrl && 'bg-transparency-grid'
+        )}
+      >
         {assetUrl ? (
           <img
             src={assetUrl}
@@ -159,6 +169,8 @@ export function FileRow({
             className="h-full w-full object-cover select-none"
             onError={() => setLoadError(true)}
           />
+        ) : isPdf ? (
+          <DocumentIcon size={17} />
         ) : (
           <ImageIcon size={17} />
         )}
@@ -166,7 +178,6 @@ export function FileRow({
           {file.extension}
         </span>
       </div>
-
       <div className="min-w-0 flex-1">
         <p className="truncate text-[13.5px] font-[450] text-foreground">
           {file.name}

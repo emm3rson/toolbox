@@ -2,9 +2,9 @@
 
 ## 1. Product
 
-Local-first Windows desktop app for image-asset prep: convert, compress, and
-generate website icon packs. Flow: choose tool → add files → adjust settings →
-export.
+Local-first Windows desktop app for developer utilities: convert, compress,
+generate website icon packs, and convert PDFs to Markdown. Flow: choose tool →
+add files → adjust settings → export.
 
 ## 2. Current capabilities
 
@@ -18,29 +18,36 @@ export.
   `favicon.ico` (16/32/48) + `favicon-16x16.png`, `favicon-32x32.png`,
   `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`; fresh numbered
   `web-pack` folder per run; asset checkboxes; copyable snippet.
-- **Shared:** drag-drop/picker/shallow-folder intake; bounded-concurrency batch
-  with per-file failure isolation; progress events; auto-rename export to one
-  remembered destination; 10 stable error codes (`errors.rs`); theme +
+- **PDF to Markdown:** local offline conversion of PDFs into Markdown via
+  `pdf-inspector`; partial Markdown with explicit inline markers for
+  OCR-required pages; fully scanned PDFs fail with `OCR_REQUIRED`; outputs
+  `document.md`, auto-renamed on collision.
+- **Shared:** drag-drop/picker/shallow-folder intake; batch processing with
+  per-file failure isolation; progress events; auto-rename export to one
+  remembered destination; 14 stable error codes (`errors.rs`); theme +
   persisted settings.
-- **Guard:** decode rejects > 16 384 px/side or 64 MP (`tools/image/decode.rs`).
+- **Guards:** decode rejects > 16 384 px/side or 64 MP (`tools/image/decode.rs`);
+  PDF rejects > 100 MiB or > 500 pages (`tools/pdf/convert.rs`).
 
 ## 3. Non-goals
 
 No accounts, cloud, backend, database, auto-updates, telemetry, history. No
 target-size compression, size estimates, cropping/editor, recursive folders,
 filename prefixes, extra formats (AVIF/GIF/SVG/HEIC), ZIP logo output, custom
-layouts, plugin SDK, website edits. No macOS/Linux release in V1.
+layouts, plugin SDK, website edits. No OCR engine or cloud AI in V1. No macOS/Linux
+release in V1.
 
 ## 4. Boundaries
 
 - Stack: Tauri 2 + React 19/TS/Vite; frontend owns interaction state;
   processing via typed service boundary (`src/services/tauri/`).
-- Commands (5): `inspect_files`, `convert_images`, `compress_images`,
-  `generate_logo_pack`, `get_logo_presets`; DTOs in `contracts.ts` + `models.rs`.
+- Commands (7): `inspect_files`, `inspect_pdfs`, `convert_images`,
+  `compress_images`, `convert_pdfs`, `generate_logo_pack`, `get_logo_presets`;
+  DTOs in `contracts.ts` + `models.rs`.
 - Tools: static registry via `ToolDefinition` (`src/tools/registry.ts`).
 - Crates: `image` 0.25, `image-webp` 0.2 (WebP decode), `libwebp-sys2` 0.2
-  (lossy WebP encode only), `rayon` (batch pool), `thiserror`; plugins
-  dialog/opener/store.
+  (lossy WebP encode only), `pdf-inspector` 1.14.2, `rayon` (batch pool),
+  `thiserror`; plugins dialog/opener/store.
 - Persistence: key-value `settings.json` via plugin-store; no DB.
 
 ## 5. Data, privacy, security
@@ -52,9 +59,10 @@ defaults + scoped opener.
 
 ## 6. Current state
 
-V1 shipped (all phases complete, smoke-tested). Installer: `npm run tauri build`
-→ `target/release/bundle/nsis/Toolbox_0.1.0_x64-setup.exe` (per-user NSIS,
-GUI-subsystem exe). Tests: 41 Rust (+1 ignored perf) + 8 frontend.
+Toolbox v0.2.0 ships with four tools. Installer: `npm run tauri build`
+→ `target/release/bundle/nsis/Toolbox_0.2.0_x64-setup.exe` (per-user NSIS,
+GUI-subsystem exe). Tests: 58 Rust (+1 ignored performance test) + 16 frontend.
+
 
 ## 7. Active decisions
 
@@ -63,7 +71,8 @@ GUI-subsystem exe). Tests: 41 Rust (+1 ignored perf) + 8 frontend.
 - PNG compression lossless (quality no-op; UI notes it).
 - Persisted prefs: converter `lastFormat`/`quality`, compressor `quality`, logo
   `selectedAssets` (not resize).
-- Batch concurrency min(cores, 4); decode limits are tunable constants.
+- Image batch concurrency is min(cores, 4); PDFs process sequentially to bound
+  memory. Decode and PDF limits are tunable constants.
 - NSIS per-user; product "Toolbox"; id `com.emmersonmena.toolbox`.
 
 ## 8. Sources of truth

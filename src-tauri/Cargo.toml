@@ -1,6 +1,6 @@
 [package]
 name = "utility-desktop"
-version = "0.1.1"
+version = "0.2.0"
 description = "Local-first desktop utility toolbox"
 authors = ["Emmerson Mena"]
 edition = "2021"
@@ -24,3 +24,7 @@ image-webp = "0.2"
 libwebp-sys2 = "0.2"
 rayon = "1"
 thiserror = "2"
+pdf-inspector = "=1.14.2"
+
+[dev-dependencies]
+lopdf = "0.42"

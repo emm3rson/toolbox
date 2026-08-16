@@ -5,6 +5,7 @@ import { openPath } from '@tauri-apps/plugin-opener'
 import type { BatchResult, GenerateLogoPackResult, InputFile, LogoAssetDefinition, ProcessingProgress, ProgressHandler, TauriAdapter } from './contracts'
 
 const IMAGE_FILTERS = [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
+const PDF_FILTERS = [{ name: 'PDF Documents', extensions: ['pdf'] }]
 const PROCESSING_EVENT = 'processing-progress'
 
 async function runWithProgress<T>(command: string, request: object, onProgress?: ProgressHandler): Promise<T> {
@@ -27,6 +28,10 @@ export const realAdapter: TauriAdapter = {
       const selected = await open({ multiple: false, directory: false, filters: IMAGE_FILTERS })
       return selected === null ? [] : [selected]
     }
+    if (mode === 'pdf') {
+      const selected = await open({ multiple: true, directory: false, filters: PDF_FILTERS })
+      return selected ?? []
+    }
     const selected = await open({ multiple: true, directory: false, filters: IMAGE_FILTERS })
     return selected ?? []
   },
@@ -39,11 +44,17 @@ export const realAdapter: TauriAdapter = {
   async inspectFiles(paths) {
     return invoke<InputFile[]>('inspect_files', { paths })
   },
+  async inspectPdfs(paths) {
+    return invoke<InputFile[]>('inspect_pdfs', { paths })
+  },
   convertImages(request, onProgress) {
     return runWithProgress<BatchResult>('convert_images', request, onProgress)
   },
   compressImages(request, onProgress) {
     return runWithProgress<BatchResult>('compress_images', request, onProgress)
+  },
+  convertPdfs(request, onProgress) {
+    return runWithProgress<BatchResult>('convert_pdfs', request, onProgress)
   },
   generateLogoPack(request, onProgress) {
     return runWithProgress<GenerateLogoPackResult>('generate_logo_pack', request, onProgress)

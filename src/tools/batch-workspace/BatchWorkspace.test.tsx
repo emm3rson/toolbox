@@ -86,7 +86,9 @@ describe('BatchWorkspace (convert)', () => {
     await user.click(screen.getByText('Drop images here'))
     await user.click(screen.getByRole('button', { name: /export 1 file/i }))
 
-    expect(await screen.findByText('1 file could not be processed')).toBeInTheDocument()
+    expect(await screen.findByText('No files converted')).toBeInTheDocument()
+    expect(screen.getByText('1 file could not be processed')).toBeInTheDocument()
     expect(screen.getByText(/Could not decode image/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
   })
 })

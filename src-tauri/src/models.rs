@@ -97,6 +97,23 @@ pub struct InputFile {
   pub error: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConvertPdfsRequest {
+  pub files: Vec<String>,
+  pub output_directory: String,
+  pub job_id: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FileWarning {
+  pub code: String,
+  pub message: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub pages: Option<Vec<u32>>,
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FileResult {
@@ -109,6 +126,8 @@ pub struct FileResult {
   pub output_size: Option<u64>,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub error: Option<ProcessingErrorDto>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub warnings: Option<Vec<FileWarning>>,
 }
 
 #[derive(Debug, Clone, Serialize)]

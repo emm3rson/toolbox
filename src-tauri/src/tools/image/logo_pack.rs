@@ -140,6 +140,7 @@ fn generate_asset(source: &image::DynamicImage, output_dir: &Path, asset_id: &st
       error: Some(
         ProcessingError::processing_failed(format!("Unknown logo asset: {asset_id}")).into_dto(),
       ),
+      warnings: None,
     };
   };
   match generate_asset_inner(source, output_dir, preset) {
@@ -150,6 +151,7 @@ fn generate_asset(source: &image::DynamicImage, output_dir: &Path, asset_id: &st
       original_size: 0,
       output_size: Some(output_size),
       error: None,
+      warnings: None,
     },
     Err(error) => FileResult {
       source_path: preset.filename.clone(),
@@ -158,6 +160,7 @@ fn generate_asset(source: &image::DynamicImage, output_dir: &Path, asset_id: &st
       original_size: 0,
       output_size: None,
       error: Some(error.into_dto()),
+      warnings: None,
     },
   }
 }

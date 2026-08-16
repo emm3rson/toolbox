@@ -1,7 +1,8 @@
 # Toolbox
 
-Local-first Windows desktop utility app for image asset preparation: convert,
-compress, and generate website icon packs. Files never leave your machine.
+Local-first Windows desktop utility app for image conversion and compression,
+website icon packs, and PDF-to-Markdown extraction. Files never leave your
+machine.
 
 ## Requirements
 

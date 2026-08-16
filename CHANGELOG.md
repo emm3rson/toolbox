@@ -2,6 +2,15 @@
 
 Concise task-level record of completed project work and important handoff context.
 
+## Release v0.2.0 — PDF to Markdown — 2026-08-16
+
+- Changed: Added PDF to Markdown as the fourth Toolbox utility, with offline native-text extraction, explicit markers and warnings for OCR-required pages in mixed documents, clear no-output failures for fully scanned PDFs, PDF-specific intake, and complete/partial/failed completion states. The final audit also corrected PDF drop-zone copy, valid-file progress counting, stable parser error handling, OCR reason labels, early page-limit rejection, partial-write cleanup, and an unrelated all-failed Logo Pack snippet regression.
+- Decision: Released as SemVer minor v0.2.0. The Rust backend pins `pdf-inspector` 1.14.2, bundles CMap resources for offline CID/CJK fallback, processes PDFs sequentially, enforces 100 MiB and 500-page guards, and extends `FileResult` additively with typed warnings.
+- Verified: `npm run test` (16), `npm run build`, `cargo test` (58 + 1 ignored), `cargo check --release`, strict `cargo clippy`, and `npm run tauri build` passed. The v0.2.0 NSIS installer is 4.56 MiB, all 169 release resources were staged, the release executable stayed alive in a non-visual launch check, and the owner reported the manual smoke checklist as mostly working well.
+
+<!-- task: 2026-08-16-pdf-to-markdown -->
+
+
 ## Release v0.1.1 — 2026-08-16
 
 - Changed: Shipped UI polish release. Replaced placeholder icon boxes with real image thumbnails in Convert and Compress file queues, added a high-fidelity square image preview with transparency grid in Web Logo Pack, unified Convert Images settings into a bordered card matching Compress Images, locked the Launcher grid to 3 columns, removed em-dashes and redundant badges, softened the light-theme palette to eliminate glare, and aligned post-processing completion buttons with icons.

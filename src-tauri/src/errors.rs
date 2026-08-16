@@ -22,38 +22,86 @@ pub enum ProcessingError {
   WriteFailed { message: String },
   #[error("{message}")]
   ProcessingFailed { message: String },
+  #[error("{message}")]
+  InvalidPdf { message: String },
+  #[error("{message}")]
+  EncryptedPdf { message: String },
+  #[error("{message}")]
+  OcrRequired { message: String },
+  #[error("{message}")]
+  LimitExceeded { message: String },
 }
 
 impl ProcessingError {
   pub fn unsupported_format(message: impl Into<String>) -> Self {
-    Self::UnsupportedFormat { message: message.into() }
+    Self::UnsupportedFormat {
+      message: message.into(),
+    }
   }
   pub fn invalid_image(message: impl Into<String>) -> Self {
-    Self::InvalidImage { message: message.into() }
+    Self::InvalidImage {
+      message: message.into(),
+    }
   }
   pub fn invalid_dimensions(message: impl Into<String>) -> Self {
-    Self::InvalidDimensions { message: message.into() }
+    Self::InvalidDimensions {
+      message: message.into(),
+    }
   }
   pub fn file_not_found(message: impl Into<String>) -> Self {
-    Self::FileNotFound { message: message.into() }
+    Self::FileNotFound {
+      message: message.into(),
+    }
   }
   pub fn permission_denied(message: impl Into<String>) -> Self {
-    Self::PermissionDenied { message: message.into() }
+    Self::PermissionDenied {
+      message: message.into(),
+    }
   }
   pub fn output_unavailable(message: impl Into<String>) -> Self {
-    Self::OutputUnavailable { message: message.into() }
+    Self::OutputUnavailable {
+      message: message.into(),
+    }
   }
   pub fn encode_failed(message: impl Into<String>) -> Self {
-    Self::EncodeFailed { message: message.into() }
+    Self::EncodeFailed {
+      message: message.into(),
+    }
   }
   pub fn decode_failed(message: impl Into<String>) -> Self {
-    Self::DecodeFailed { message: message.into() }
+    Self::DecodeFailed {
+      message: message.into(),
+    }
   }
   pub fn write_failed(message: impl Into<String>) -> Self {
-    Self::WriteFailed { message: message.into() }
+    Self::WriteFailed {
+      message: message.into(),
+    }
   }
   pub fn processing_failed(message: impl Into<String>) -> Self {
-    Self::ProcessingFailed { message: message.into() }
+    Self::ProcessingFailed {
+      message: message.into(),
+    }
+  }
+  pub fn invalid_pdf(message: impl Into<String>) -> Self {
+    Self::InvalidPdf {
+      message: message.into(),
+    }
+  }
+  pub fn encrypted_pdf(message: impl Into<String>) -> Self {
+    Self::EncryptedPdf {
+      message: message.into(),
+    }
+  }
+  pub fn ocr_required(message: impl Into<String>) -> Self {
+    Self::OcrRequired {
+      message: message.into(),
+    }
+  }
+  pub fn limit_exceeded(message: impl Into<String>) -> Self {
+    Self::LimitExceeded {
+      message: message.into(),
+    }
   }
 
   pub fn into_dto(self) -> ProcessingErrorDto {
@@ -68,6 +116,10 @@ impl ProcessingError {
       Self::DecodeFailed { message } => ("DECODE_FAILED", message),
       Self::WriteFailed { message } => ("WRITE_FAILED", message),
       Self::ProcessingFailed { message } => ("PROCESSING_FAILED", message),
+      Self::InvalidPdf { message } => ("INVALID_PDF", message),
+      Self::EncryptedPdf { message } => ("ENCRYPTED_PDF", message),
+      Self::OcrRequired { message } => ("OCR_REQUIRED", message),
+      Self::LimitExceeded { message } => ("LIMIT_EXCEEDED", message),
     };
     ProcessingErrorDto {
       code: code.into(),
@@ -109,16 +161,29 @@ mod tests {
   #[test]
   fn all_variants_map_to_stable_codes() {
     let cases = [
-      (ProcessingError::unsupported_format("x"), "UNSUPPORTED_FORMAT"),
+      (
+        ProcessingError::unsupported_format("x"),
+        "UNSUPPORTED_FORMAT",
+      ),
       (ProcessingError::invalid_image("x"), "INVALID_IMAGE"),
-      (ProcessingError::invalid_dimensions("x"), "INVALID_DIMENSIONS"),
+      (
+        ProcessingError::invalid_dimensions("x"),
+        "INVALID_DIMENSIONS",
+      ),
       (ProcessingError::file_not_found("x"), "FILE_NOT_FOUND"),
       (ProcessingError::permission_denied("x"), "PERMISSION_DENIED"),
-      (ProcessingError::output_unavailable("x"), "OUTPUT_UNAVAILABLE"),
+      (
+        ProcessingError::output_unavailable("x"),
+        "OUTPUT_UNAVAILABLE",
+      ),
       (ProcessingError::encode_failed("x"), "ENCODE_FAILED"),
       (ProcessingError::decode_failed("x"), "DECODE_FAILED"),
       (ProcessingError::write_failed("x"), "WRITE_FAILED"),
       (ProcessingError::processing_failed("x"), "PROCESSING_FAILED"),
+      (ProcessingError::invalid_pdf("x"), "INVALID_PDF"),
+      (ProcessingError::encrypted_pdf("x"), "ENCRYPTED_PDF"),
+      (ProcessingError::ocr_required("x"), "OCR_REQUIRED"),
+      (ProcessingError::limit_exceeded("x"), "LIMIT_EXCEEDED"),
     ];
     for (error, expected_code) in cases {
       let dto = error.into_dto();

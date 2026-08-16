@@ -90,4 +90,34 @@ describe('WebLogoPack', () => {
     expect(await screen.findByText('Export directory is not available')).toBeInTheDocument()
     expect(screen.getByText('Standard Web Pack')).toBeInTheDocument()
   })
+
+  it('does not show output actions or a snippet when every asset fails', async () => {
+    const user = userEvent.setup()
+    mockTauri.inspectFiles.mockResolvedValue([source()])
+    mockTauri.generateLogoPack.mockResolvedValue({
+      packDirectory: 'C:\\out\\web-pack',
+      batch: {
+        total: 1,
+        succeeded: 0,
+        failed: 1,
+        items: [
+          {
+            sourcePath: 'C:\\logo.png',
+            success: false,
+            originalSize: 1024,
+            error: { code: 'ENCODE_FAILED', message: 'Could not encode asset' },
+          },
+        ],
+      },
+    })
+    renderWithProviders(<WebLogoPack />)
+
+    await user.click(screen.getByText('Drop images here'))
+    await user.click(screen.getByRole('button', { name: /generate 6 assets/i }))
+
+    expect(await screen.findByText('No assets generated')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
+    expect(screen.queryByText('Integration snippet')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /open folder/i })).not.toBeInTheDocument()
+  })
 })

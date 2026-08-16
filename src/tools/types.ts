@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 
-export type ToolId = 'convert' | 'compress' | 'logo'
+export type ToolId = 'convert' | 'compress' | 'logo' | 'pdf-markdown'
 
 export interface ToolDefinition {
   id: ToolId

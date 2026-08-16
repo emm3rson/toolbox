@@ -15,7 +15,7 @@
 
 ## 3. Components & Interaction
 
-- **Thumbnails & Previews**: Queue items show real 36x36 px thumbnails (`object-cover`) with extension badge and icon fallback on error. Logo pack shows uncropped square preview (`object-contain`).
+- **Thumbnails & Previews**: Queue items show real 36x36 px thumbnails (`object-cover`) for images with extension badge and icon fallback on error. PDF queue items show a clean document icon with `.pdf` badge. Logo pack shows uncropped square preview (`object-contain`).
 - **Control Hierarchy**: Quality sliders show prominent mono score with `"max compression"` / `"near-lossless"` bounds. One clear primary button; secondary destructive actions ("Clear all") stay muted (`text-muted-foreground`) until hovered.
-- **Completion Screen**: Elevated summary card with metrics, failures, and action buttons (`FolderIcon`, `RotateCcwIcon`, `CopyIcon`) aligned to the message text column.
+- **Completion Screen**: Elevated summary card with metrics, optional partial-conversion notices using the shared warning tokens, failures, and action buttons (`FolderIcon`, `RotateCcwIcon`, `CopyIcon`) aligned to the message text column. All-failed results must not show output-only actions or content.
 - **Non-Destructive**: Auto-rename on collision; never overwrite source files.

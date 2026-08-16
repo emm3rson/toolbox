@@ -75,6 +75,43 @@ where
   })
 }
 
+/// Processes files sequentially with 1-by-1 progress reporting.
+/// Used for PDF conversion where the parser already handles internal parallelism.
+pub fn run_sequential_batch<F, P>(
+  files: &[std::path::PathBuf],
+  process: F,
+  on_progress: P,
+) -> Result<BatchResult, ProcessingError>
+where
+  F: Fn(&Path) -> FileResult,
+  P: Fn(u32, u32, &str),
+{
+  let total = files.len();
+  if files.is_empty() {
+    return Ok(BatchResult {
+      total: 0,
+      succeeded: 0,
+      failed: 0,
+      items: Vec::new(),
+    });
+  }
+
+  let mut items = Vec::with_capacity(total);
+  for (index, file) in files.iter().enumerate() {
+    let result = process(file);
+    on_progress((index + 1) as u32, total as u32, &path_string(file));
+    items.push(result);
+  }
+
+  let succeeded = items.iter().filter(|item| item.success).count();
+  Ok(BatchResult {
+    total: total as u32,
+    succeeded: succeeded as u32,
+    failed: (total - succeeded) as u32,
+    items,
+  })
+}
+
 fn worker_threads() -> usize {
   std::thread::available_parallelism()
     .map(|n| n.get())
@@ -130,7 +167,15 @@ mod tests {
     let files = vec![good.clone(), corrupt.clone(), missing];
     let result = run_batch(
       &files,
-      |source| convert_file(source, &out, ImageFormat::Webp, Some(80), &ResizeOptions::Original),
+      |source| {
+        convert_file(
+          source,
+          &out,
+          ImageFormat::Webp,
+          Some(80),
+          &ResizeOptions::Original,
+        )
+      },
       noop_progress,
     )
     .unwrap();
@@ -173,7 +218,15 @@ mod tests {
 
     let result = run_batch(
       &files,
-      |source| convert_file(source, &out, ImageFormat::Jpeg, Some(80), &ResizeOptions::Original),
+      |source| {
+        convert_file(
+          source,
+          &out,
+          ImageFormat::Jpeg,
+          Some(80),
+          &ResizeOptions::Original,
+        )
+      },
       noop_progress,
     )
     .unwrap();
@@ -198,7 +251,15 @@ mod tests {
     let completed = std::sync::Mutex::new(Vec::new());
     let result = run_batch(
       &files,
-      |source| convert_file(source, &out, ImageFormat::Webp, Some(80), &ResizeOptions::Original),
+      |source| {
+        convert_file(
+          source,
+          &out,
+          ImageFormat::Webp,
+          Some(80),
+          &ResizeOptions::Original,
+        )
+      },
       |done, total, _filename| {
         completed.lock().unwrap().push((done, total));
       },

@@ -25,6 +25,7 @@ pub fn compress_file(
       original_size,
       output_size: Some(output_size),
       error: None,
+      warnings: None,
     },
     Err(error) => FileResult {
       source_path: source_string,
@@ -33,6 +34,7 @@ pub fn compress_file(
       original_size: std::fs::metadata(source).map(|meta| meta.len()).unwrap_or(0),
       output_size: None,
       error: Some(error.into_dto()),
+      warnings: None,
     },
   }
 }
