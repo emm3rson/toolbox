@@ -421,20 +421,15 @@ export function WebLogoPack() {
               {source.name}
             </p>
             <p className="font-mono text-[11.5px] text-muted-foreground mt-0.5 tabular-nums">
-              {source.width > 0 && source.height > 0
-                ? `${source.width.toLocaleString()} × ${source.height.toLocaleString()}`
-                : ''}
-              <span className="text-border-strong mx-1.5">·</span>
+              {source.width > 0 && source.height > 0 ? (
+                <>
+                  {source.width.toLocaleString()} × {source.height.toLocaleString()}
+                  <span className="text-border-strong mx-1.5">·</span>
+                </>
+              ) : null}
               {formatBytes(source.size)}
             </p>
           </div>
-
-          {source.width >= 512 && source.width === source.height && (
-            <div className="mt-3 pt-3 border-t border-border flex items-center gap-1.5 text-[11.5px] text-success">
-              <CheckIcon size={13} />
-              Square · high resolution
-            </div>
-          )}
 
           {!processing && (
             <div className="mt-3 pt-3 border-t border-border">

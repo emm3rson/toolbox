@@ -2,9 +2,9 @@
 
 Concise task-level record of completed project work and important handoff context.
 
-## Real Image Previews and File Thumbnails — 2026-08-16
+## Real Image Previews, Palette Softening & UI Polish — 2026-08-16
 
-- Changed: Replaced placeholder icon boxes with real image thumbnails in Convert Images and Compress Images file queues, added a large dedicated square image preview with subtle transparency grid in Web Logo Pack, and enabled Tauri 2's asset protocol (`protocol-asset`).
+- Changed: Replaced placeholder icon boxes with real image thumbnails in Convert Images and Compress Images file queues, added a dedicated square image preview with subtle transparency grid in Web Logo Pack, removed the redundant high-resolution badge in Logo Pack, softened the light-theme card surfaces (`--card: #f8f7f4`, `--elevated: #fdfcfb`) to reduce glare, and enabled Tauri 2's asset protocol (`protocol-asset`).
 - Decision: Image thumbnails use `object-cover` in file queues and `object-contain` in the Logo Pack canvas, backed by a subtle CSS transparency checkerboard pattern and graceful icon fallback on decode failure.
 - Verified: `npm run test` (8), `npm run build`, and `cargo check` passed.
 

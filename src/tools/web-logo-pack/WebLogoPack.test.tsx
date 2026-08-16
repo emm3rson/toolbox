@@ -58,7 +58,7 @@ describe('WebLogoPack', () => {
     await user.click(screen.getByText('Drop images here'))
 
     expect(await screen.findByText('Standard Web Pack')).toBeInTheDocument()
-    expect(screen.getByText('Square · high resolution')).toBeInTheDocument()
+    expect(screen.getByText('logo.png')).toBeInTheDocument()
     expect(screen.getByText('favicon.ico')).toBeInTheDocument()
     expect(screen.getByText('icon-512.png')).toBeInTheDocument()
 
