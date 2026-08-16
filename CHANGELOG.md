@@ -2,17 +2,11 @@
 
 Concise task-level record of completed project work and important handoff context.
 
-## Real Image Previews, Palette Softening & UI Polish — 2026-08-16
+## Release v0.1.1 — 2026-08-16
 
-- Changed: Replaced placeholder icon boxes with real image thumbnails in Convert Images and Compress Images file queues, added a dedicated square image preview with subtle transparency grid in Web Logo Pack, removed the redundant high-resolution badge in Logo Pack, softened the light-theme card surfaces (`--card: #f8f7f4`, `--elevated: #fdfcfb`) to reduce glare, and enabled Tauri 2's asset protocol (`protocol-asset`).
-- Decision: Image thumbnails use `object-cover` in file queues and `object-contain` in the Logo Pack canvas, backed by a subtle CSS transparency checkerboard pattern and graceful icon fallback on decode failure.
-- Verified: `npm run test` (8), `npm run build`, and `cargo check` passed.
-
-## Main Screens Consistency & UI Polish — 2026-08-16
-
-- Changed: Unified Convert Images settings into a cohesive bordered card matching Compress Images, aligned quality slider presentation (22px mono score with max-compression/near-lossless labels), replaced Web Logo Pack's placeholder with a compact source card with integrated image replace button, locked launcher tool grid to 3 columns, removed em-dashes, and restrained "Clear all" button to muted text highlighting on hover.
-- Decision: Tool settings sidebars maintain unified card containers across all tools, and destructive actions stay visually muted until hovered to preserve primary CTA focus.
-- Verified: `npm run test` (8 frontend tests) and `npm run build` passed.
+- Changed: Shipped UI polish release. Replaced placeholder icon boxes with real image thumbnails in Convert and Compress file queues, added a high-fidelity square image preview with transparency grid in Web Logo Pack, unified Convert Images settings into a bordered card matching Compress Images, locked the Launcher grid to 3 columns, removed em-dashes and redundant badges, softened the light-theme palette to eliminate glare, and aligned post-processing completion buttons with icons.
+- Decision: Enabled Tauri 2 native asset protocol (`protocol-asset`) for secure local-only image thumbnail rendering, and established `docs/RELEASE_RUNBOOK.md` as the durable shipping guide.
+- Verified: `npm run test` (8), `cargo test` (41 + 1 ignored), `npm run build`, and `npm run tauri build` (NSIS installer `Toolbox_0.1.1_x64-setup.exe`) passed.
 
 ## V1 Release — 2026-08-15
 
