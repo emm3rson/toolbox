@@ -58,3 +58,7 @@ Toolbox includes seven focused utilities:
 - **Frontend**: React 19, TypeScript 5.9, Vite, and Tailwind CSS. The frontend manages user interaction, queue presentation, and tool configuration.
 - **Native Core**: Tauri 2 with Rust. Handles file decoding, encoding, batch concurrency, and child process execution via typed IPC commands (`src-tauri/src/`).
 - **Engines & Crates**: `oxipng` for PNG optimization, `image` and `resvg` for image and vector processing, `pdf-inspector` for PDF text extraction, `kmeans_colors` for palette clustering, bundled `ffmpeg` for video transcoding, and bundled `qpdf` for PDF stream optimization.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
